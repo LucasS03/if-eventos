@@ -1,0 +1,4 @@
+font-family: 'Dosis', sans-serif;
+font-family: 'Nunito Sans', sans-serif;
+font-family: 'Nunito', sans-serif;
+font-family: 'Questrial', sans-serif;
