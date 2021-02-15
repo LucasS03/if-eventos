@@ -15,8 +15,8 @@ class MyApp extends StatelessWidget {
         cursorColor: Colors.white,
         fontFamily: 'Nunito',
       ),
-      // home: SignInScreen()
-      home: HomeApp()
+      home: SignInScreen()
+      // home: HomeApp()
     );
   }
 }
