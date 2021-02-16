@@ -16,6 +16,7 @@ class NewEventLocalScreen extends StatefulWidget {
 class _NewEventLocalScreenState extends State<NewEventLocalScreen> {
   final _formKey = GlobalKey<FormState>();
   TextEditingController _localController = new TextEditingController();
+  String _campusEvent = "ARACATI";
 
   @override
   Widget build(BuildContext context) {
@@ -55,26 +56,59 @@ class _NewEventLocalScreenState extends State<NewEventLocalScreen> {
                         SizedBox(height: 20),
                         Form(
                           key: _formKey,
-                          child: TextFormField(
-                            controller: _localController,
-                            cursorColor: Colors.green,
-                            validator: (value) {
-                              if(_localController.text.isEmpty)
-                                return 'O local do seu evento não pode ser vazio';
+                          child: Column(
+                            children: [
+                              TextFormField(
+                                controller: _localController,
+                                cursorColor: Colors.green,
+                                validator: (value) {
+                                  if(_localController.text.isEmpty)
+                                    return 'O local do seu evento não pode ser vazio';
 
-                              return null;
-                            },
-                            keyboardType: TextInputType.text,
-                            decoration: InputDecoration(
-                              labelText: "Exemplo: IFCE Aracati - Campus Centro",
-                              labelStyle: TextStyle(
-                                color: Colors.grey[600]
+                                  return null;
+                                },
+                                keyboardType: TextInputType.text,
+                                decoration: InputDecoration(
+                                  labelText: "Exemplo: IFCE Aracati - Campus Centro",
+                                  labelStyle: TextStyle(
+                                    color: Colors.grey[600]
+                                  ),
+                                  prefixIcon: Icon(
+                                    Icons.location_on_outlined, 
+                                    color: Colors.grey[600]
+                                  ),
+                                ),
                               ),
-                              prefixIcon: Icon(
-                                Icons.location_on_outlined, 
-                                color: Colors.grey[600]
+
+                              SizedBox(height: 10),
+                              Row(
+                                children: <Widget>[
+                                  Text(
+                                    "Campus do evento",
+                                    style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+                                  ),
+                                  SizedBox(width: 10,),
+                                  Expanded(
+                                    child: DropdownButton<dynamic>(
+                                      icon: Icon(Icons.keyboard_arrow_down),
+                                      isExpanded: true,
+                                      value: _campusEvent,
+                                      onChanged: (newValue) {
+                                        setState(() {
+                                          _campusEvent = newValue;
+                                        });
+                                      },
+                                      items: [
+                                        DropdownMenuItem<dynamic>(
+                                          value: "ARACATI",
+                                          child: Text("Aracati", style: TextStyle(fontSize: 18, color: Colors.grey[600]),)
+                                        )
+                                      ]
+                                    ),
+                                  )
+                                ],
                               ),
-                            ),
+                            ],
                           )
                         ),
                       ],
@@ -88,8 +122,8 @@ class _NewEventLocalScreenState extends State<NewEventLocalScreen> {
                   child: RaisedButton(
                     onPressed: () {
                       widget.newEvent["local"] = _localController.text;
+                      widget.newEvent["campus"] = _campusEvent;
                       
-                      print(widget.newEvent);
                       Firestore.instance.collection("events")
                         .add(widget.newEvent).then((value) => {
                           Navigator.push(

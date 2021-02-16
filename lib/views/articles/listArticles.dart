@@ -1,16 +1,28 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:ifeventos/views/articles/rate/rateArticle.dart';
+import 'package:ifeventos/views/articles/sendArticles.dart';
 import 'package:ifeventos/widgets/custom-dialog.dart';
+import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:core';
 
 class ListArticlesScreen extends StatefulWidget {
+
+  final String eventId;
+  ListArticlesScreen({ @required this.eventId });
+
   @override
   _ListArticlesScreenState createState() => _ListArticlesScreenState();
 }
 
 class _ListArticlesScreenState extends State<ListArticlesScreen> {
 
+  final user = GetStorage().read('userData');
+  DocumentSnapshot eventFull;
+  bool _load = true;
+  
   Map event = {
     "title": "VIII SEMIC - Semana de Iniciação Científica e Tecnológica 2020",
     "date": "12/12/2020",
@@ -74,6 +86,25 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
   ];
 
   @override
+  void initState() {
+    getEvent();
+    super.initState();
+  }
+
+  getEvent() async {
+    eventFull = await Firestore.instance.collection("events").document(widget.eventId).snapshots().first;
+
+    setState(() {
+      _load = false;
+    });
+  }
+
+  timestampToDateTimeFormated(seconds) {
+    DateTime date = DateTime.fromMillisecondsSinceEpoch(seconds * 1000);
+    return DateFormat('dd/MM/yyyy').format(date);
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color(0xffdddddd),
@@ -85,7 +116,14 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
         ),
       ),
 
-      body: ListView(
+      body: _load ?
+        Container(
+          padding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+          child: Center(
+            child: CircularProgressIndicator()
+          ),
+        ) :
+        ListView(
         padding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
         children: <Widget>[
           Container(
@@ -99,15 +137,48 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
+                Visibility(
+                  visible: this.user["type"] == "GESTOR",
+                  child: Column(
+                    children: [
+                      SizedBox(
+                        height: 50,
+                        width: double.maxFinite,
+                        child: RaisedButton(
+                          onPressed: () { 
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => SendArticlesScreen(eventId: widget.eventId)),
+                            );
+                          },
+                          color: Colors.green,
+                          child: Text(
+                            "Adicionar Trabalhos",
+                            style: TextStyle(
+                              fontFamily: 'Nunito',
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 10),
+                    ],
+                  ),
+                ),
+                eventFull.data["site"] != "" ?
                 Text(
                   "Site do evento:",
                   style: Theme.of(context).textTheme.headline6.merge(
                     TextStyle(fontSize: 18, fontWeight: FontWeight.w600)
                   ),
-                ),
+                ) : SizedBox(),
+                eventFull.data["site"] != "" ?
                 InkWell(
                   child: Text(
-                    "http://prpi.ifce.edu.br/nl/e/?id=106",
+                    // "http://prpi.ifce.edu.br/nl/e/?id=106",
+                    eventFull.data["site"],
                     style: Theme.of(context).textTheme.headline6.merge(
                       TextStyle(
                         fontSize: 16,
@@ -117,11 +188,12 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
                     )
                   ),
                   onTap: () => launch("http://prpi.ifce.edu.br/nl/e/?id=106"),
-                ),
+                ) : SizedBox(),
                 
-                addInfo(first: "Data: ", last: "${event["date"]}"),
-                addInfo(first: "Horário: ", last: "${getHourEvent(hours: event["hour"])}"),
-                addInfo(first: "Local: ", last: "${event["local"]}")
+                // addInfo(first: "Data: ", last: "${event["date"]}"),
+                addInfo(first: "Data: ", last: "${timestampToDateTimeFormated(eventFull.data["dateBegin"].seconds)}"),
+                addInfo(first: "Horário: ", last: "${eventFull.data["hourBegin"]} às ${eventFull.data["hourEnd"]}"),
+                addInfo(first: "Local: ", last: "${eventFull.data["local"]}")
               ],
             ),
           ),

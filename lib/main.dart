@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:ifeventos/views/home/home.dart';
 import 'package:ifeventos/views/signIn/sign-in.dart';
+import 'package:ifeventos/views/splash-screen/splash-screen.dart';
 
-void main() => runApp(MyApp());
+void main() async {
+  await GetStorage.init();
+  runApp(MyApp());
+}
 
 class MyApp extends StatelessWidget {
   @override
@@ -15,7 +20,8 @@ class MyApp extends StatelessWidget {
         cursorColor: Colors.white,
         fontFamily: 'Nunito',
       ),
-      home: SignInScreen()
+      home: SplashScreen()
+      // home: SignInScreen()
       // home: HomeApp()
     );
   }

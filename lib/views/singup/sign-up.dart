@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:ifeventos/widgets/custom-dialog-box.dart';
@@ -16,6 +17,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
   TextEditingController _pwdController = new TextEditingController();
   TextEditingController _cnfPwdController = new TextEditingController();
   bool _created = false;
+  String _typeUser = "AVALIADOR";
+  String _campusUser = "ARACATI";
 
   _register() async {
     try {
@@ -25,19 +28,34 @@ class _SignUpScreenState extends State<SignUpScreen> {
       );
 
       if(auth.user.uid != null && auth.user.uid.length > 0) {
-        showDialog(context: context,
-          builder: (BuildContext context){
-            return CustomDialogBox(
-              title: "Tudo Certo!",
-              descriptions: "Sua conta foi criada. Agora você pode fazer login com seu e-mail e senha!",
-              text: "Ir para o Login",
-              icon: Icons.check,
-              iconColor: Colors.white,
-              color: Colors.greenAccent,
-              skipScreen: true,
-            );
-          }
-        );
+
+        Map<String, dynamic> user = {
+          "name": _nameController.text,
+          "registration": _registrationController.text,
+          "email": _mailController.text,
+          "type": _typeUser,
+          "campus": _campusUser,
+          "photo": ""
+        };
+
+        Firestore.instance.collection("users").document(auth.user.uid)
+          .setData(user).then((value) => {
+            showDialog(context: context,
+              builder: (BuildContext context){
+                return CustomDialogBox(
+                  title: "Tudo Certo!",
+                  descriptions: "Sua conta foi criada. Agora você pode fazer login com seu e-mail e senha!",
+                  text: "Ir para o Login",
+                  icon: Icons.check,
+                  iconColor: Colors.white,
+                  color: Colors.greenAccent,
+                  skipScreen: true,
+                );
+              }
+            )
+          }).catchError((err) => {
+            print(err)
+          });
       }
     } catch (e) {
       print(e);
@@ -84,6 +102,71 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   )
                 ),
 
+                SizedBox(height: 10),
+                Row(
+                  children: <Widget>[
+                    Text(
+                      "Você é um ",
+                      style: TextStyle(fontSize: 18),
+                    ),
+                    SizedBox(width: 10,),
+                    Expanded(
+                      child: DropdownButton<dynamic>(
+                        icon: Icon(Icons.keyboard_arrow_down),
+                        isExpanded: true,
+                        value: _typeUser,
+                        onChanged: (newValue) {
+                          setState(() {
+                            _typeUser = newValue;
+                          });
+                        },
+                        items: [
+                          DropdownMenuItem<dynamic>(
+                            value: "AVALIADOR",
+                            child: Text("Avaliador")
+                          ),
+                          // DropdownMenuItem<dynamic>(
+                          //   value: "ALUNO",
+                          //   child: Text("Aluno")
+                          // ),
+                          // DropdownMenuItem<dynamic>(
+                          //   value: "GESTOR",
+                          //   child: Text("Coordenador")
+                          // ),
+                        ]
+                      ),
+                    )
+                  ],
+                ),
+                SizedBox(height: 10),
+                Row(
+                  children: <Widget>[
+                    Text(
+                      "Seu campus é ",
+                      style: TextStyle(fontSize: 18),
+                    ),
+                    SizedBox(width: 10,),
+                    Expanded(
+                      child: DropdownButton<dynamic>(
+                        icon: Icon(Icons.keyboard_arrow_down),
+                        isExpanded: true,
+                        value: _campusUser,
+                        onChanged: (newValue) {
+                          setState(() {
+                            _campusUser = newValue;
+                          });
+                        },
+                        items: [
+                          DropdownMenuItem<dynamic>(
+                            value: "ARACATI",
+                            child: Text("Aracati")
+                          )
+                        ]
+                      ),
+                    )
+                  ],
+                ),
+                
                 fieldForm(
                   icon: Icons.person, 
                   label: "Nome", 

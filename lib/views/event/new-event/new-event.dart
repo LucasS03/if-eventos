@@ -38,7 +38,7 @@ class _NewEventScreenState extends State<NewEventScreen> {
                     ),
                     SizedBox(height: 20),
                     Text(
-                      "Aqui você vai poder criar um novo evento em 4 passos...\n\nVamos lá?",
+                      "Aqui você vai poder criar um novo evento em 5 passos...\n\nVamos lá?",
                       style: Theme.of(context).textTheme.headline5.merge(
                         TextStyle(color: Colors.grey[600])
                       ),

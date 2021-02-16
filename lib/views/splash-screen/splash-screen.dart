@@ -1,7 +1,10 @@
 import 'dart:async';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:ifeventos/views/home/home.dart';
+import 'package:ifeventos/views/signIn/sign-in.dart';
 
 class SplashScreen extends StatefulWidget {
   @override
@@ -9,18 +12,33 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
-
   
   void initState() {
-    
-    Timer(Duration(seconds: 3), () => 
+    getUser();
+    super.initState();
+  }
+
+  getUser() async {
+    await GetStorage.init('username');
+    final user = GetStorage().read('username');
+
+    if(user != null) {
+      String userId = GetStorage().read('userId');
+      DocumentSnapshot userData = await Firestore.instance.collection("users").document(userId).snapshots().first;
+      
+      await GetStorage.init('userData');
+      GetStorage().write('userData', userData.data);
+
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => HomeApp()),
-      )
-    );
-
-    super.initState();
+      );
+    } else {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => SignInScreen()),
+      );
+    }
   }
 
   @override

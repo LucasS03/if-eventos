@@ -1,25 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:ifeventos/views/event/new-event/new-event-site.dart';
+import 'package:ifeventos/views/event/new-event/new-event-date.dart';
 import 'package:ifeventos/widgets/custom-card.dart';
 
-class NewEventTitleScreen extends StatefulWidget {
+class NewEventSiteScreen extends StatefulWidget {
+
+  final Map<String, dynamic> newEvent;
+
+  NewEventSiteScreen({ @required this.newEvent });
+
   @override
-  _NewEventTitleScreenState createState() => _NewEventTitleScreenState();
+  _NewEventSiteScreenState createState() => _NewEventSiteScreenState();
 }
 
-class _NewEventTitleScreenState extends State<NewEventTitleScreen> {
+class _NewEventSiteScreenState extends State<NewEventSiteScreen> {
   final _formKey = GlobalKey<FormState>();
-  TextEditingController _titleController = new TextEditingController();
-  Map<String, dynamic> newEvent = {
-    "title": "",
-    "site": "",
-    "campus": "",
-    "dateBegin": "",
-    "dateEnd": "",
-    "hourBegin": "",
-    "hourEnd": "",
-    "local": ""
-  };
+  TextEditingController _siteController = new TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -50,7 +45,7 @@ class _NewEventTitleScreenState extends State<NewEventTitleScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          "Qual vai ser o título do seu evento?",
+                          "Qual o link do site do seu evento?",
                           style: Theme.of(context).textTheme.headline5.merge(
                             TextStyle(color: Colors.grey[600])
                           ),
@@ -60,20 +55,20 @@ class _NewEventTitleScreenState extends State<NewEventTitleScreen> {
                         Form(
                           key: _formKey,
                           child: TextFormField(
-                            controller: _titleController,
+                            controller: _siteController,
                             cursorColor: Colors.green,
                             validator: (value) {
-                              if(_titleController.text.isEmpty)
-                                return 'O título do seu evento não pode ser vazio';
+                              if(_siteController.text.isEmpty)
+                                return 'O site do seu evento não pode ser vazio';
 
-                              if(_titleController.text.length < 5)
-                                return 'O título do seu evento está muito curto';
+                              if(!_siteController.text.contains('.'))
+                                return 'Site inválido';
 
                               return null;
                             },
                             keyboardType: TextInputType.text,
                             decoration: InputDecoration(
-                              labelText: "Exemplo: SEMIC 2021",
+                              labelText: "Exemplo: https://www.meuevento.com",
                               labelStyle: TextStyle(
                                 color: Colors.grey[600]
                               ),
@@ -97,11 +92,11 @@ class _NewEventTitleScreenState extends State<NewEventTitleScreen> {
                       if(!_formKey.currentState.validate())
                         return;
                         
-                      newEvent["title"] = _titleController.text;
+                      widget.newEvent["site"] = _siteController.text;
 
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => NewEventSiteScreen(newEvent: newEvent)),
+                        MaterialPageRoute(builder: (context) => NewEventDateScreen(newEvent: widget.newEvent)),
                       );
                     },
                     color: Colors.green,

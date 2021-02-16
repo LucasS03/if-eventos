@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ifeventos/views/event/event.dart';
-import 'package:ifeventos/views/event/new-event/new-event-title.dart';
+import 'package:ifeventos/views/home/home.dart';
 import 'package:ifeventos/widgets/custom-card.dart';
 
 class NewEventFinishScreen extends StatefulWidget {
@@ -57,7 +56,7 @@ class _NewEventFinishScreenState extends State<NewEventFinishScreen> {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => EventScreen()),
+                    MaterialPageRoute(builder: (context) => HomeApp()),
                   );
                 },
                 color: Colors.green,

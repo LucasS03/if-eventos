@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:ifeventos/views/recover-password/recover-password.dart';
 import 'package:ifeventos/views/singup/sign-up.dart';
 import 'package:ifeventos/views/splash-screen/splash-screen.dart';
@@ -53,11 +54,18 @@ class _SignInScreenState extends State<SignInScreen> {
         password: _pwdController.text
       );
 
-      if(user != null)
+      if(user != null) {
+        await GetStorage.init('username');
+        GetStorage().write('username', _mailController.text);
+        
+        await GetStorage.init('userId');
+        GetStorage().write('userId', user.user.uid);
+
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => SplashScreen()),
         );
+      }
     } catch(err) {
       print(err);
       String error = 'Falha ao realizar login';

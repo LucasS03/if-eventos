@@ -4,6 +4,10 @@ import 'package:ifeventos/views/articles/ranking/ranking.dart';
 import 'package:titled_navigation_bar/titled_navigation_bar.dart';
 
 class HomeArticlesScreen extends StatefulWidget {
+
+  final String eventId;
+  HomeArticlesScreen({ @required this.eventId });
+
   @override
   _HomeArticlesScreenState createState() => _HomeArticlesScreenState();
 }
@@ -16,7 +20,7 @@ class _HomeArticlesScreenState extends State<HomeArticlesScreen> {
   @override
   void initState() {
     super.initState();
-    _screens.add(ListArticlesScreen());
+    _screens.add(ListArticlesScreen(eventId: widget.eventId));
     _screens.add(RankingScreen());
   }
 

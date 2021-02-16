@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ifeventos/views/event/event.dart';
+import 'package:ifeventos/views/user/home-user-screen.dart';
 import 'package:titled_navigation_bar/titled_navigation_bar.dart';
 
 class HomeApp extends StatefulWidget {
@@ -16,7 +17,7 @@ class _HomeAppState extends State<HomeApp> {
   void initState() {
     super.initState();
     _screens.add(EventScreen());
-    _screens.add(EventScreen());
+    _screens.add(HomeUserScreen());
   }
 
   @override
