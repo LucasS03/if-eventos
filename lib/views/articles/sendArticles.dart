@@ -1,5 +1,11 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:csv/csv.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:ifeventos/widgets/custom-dialog-box.dart';
 
 class SendArticlesScreen extends StatefulWidget {
 
@@ -17,6 +23,84 @@ class _SendArticlesScreenState extends State<SendArticlesScreen> {
 
   getEvent() async {
     eventFull = await Firestore.instance.collection("events").document(widget.eventId).snapshots().first;
+  }
+
+  getFile() async {
+    try {
+      FilePickerResult result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['csv'],
+        allowMultiple: false
+      );
+
+      if(result != null) {
+        PlatformFile file = result.files.first;  
+        print(file.name);
+        print(file.bytes);
+        print(file.size);
+        print(file.extension);
+        print(file.path);
+        
+        final input = new File(file.path).openRead();
+        
+        final fields = await input
+            .transform(latin1.decoder)
+            .transform(new CsvToListConverter(fieldDelimiter: ';'))
+            .toList();
+        
+        for(var t in fields) {
+          Map<String, dynamic> map = {
+            "idTrabalho": t[0],
+            "idEvento": t[1],
+            "dataInsercao": t[2],
+            "idProjeto": t[3],
+            "titulo": t[4],
+            "resumo": t[5],
+            "area": t[6],
+            "nome": t[7],
+            "pdf": t[8]
+          };
+
+          Firestore.instance.collection("events").document(widget.eventId)
+            .collection("articles")
+            .add(map).then((value) => {
+            }).catchError((err) => {
+              print(err)
+            });
+          
+        }
+
+        showDialog(context: context,
+          builder: (BuildContext context){
+            return CustomDialogBox(
+              title: "Tudo certo!",
+              descriptions: "Os trabalhos foram enviados e já estão disponíveis para ser alocados.",
+              text: "Voltar",
+              icon: Icons.check,
+              iconColor: Colors.white,
+              color: Colors.greenAccent,
+              skipScreen: true,
+            );
+          }
+        );
+      } else {
+        print("captura cancelada");
+      }
+    } catch(err) {
+      print(err);
+      showDialog(context: context,
+        builder: (BuildContext context){
+          return CustomDialogBox(
+            title: "Ops... :(",
+            descriptions: "Desculpe, tivemos algum erro com o envio do seu arquivo.",
+            text: "Tentar Novamente",
+            icon: Icons.close,
+            iconColor: Colors.white,
+            color: Colors.redAccent
+          );
+        }
+      );
+    }
   }
 
   @override
@@ -77,6 +161,27 @@ class _SendArticlesScreenState extends State<SendArticlesScreen> {
                     )
                   ],
                 ),
+                SizedBox(
+                  height: 50,
+                  width: double.maxFinite,
+                  child: RaisedButton(
+                    onPressed: () { 
+                      getFile();
+                    },
+                    color: Colors.green,
+                    child: Text(
+                      "Selecionar Arquivo",
+                      style: TextStyle(
+                        fontFamily: 'Nunito',
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white
+                      ),
+                    ),
+                  ),
+                ),
+
+                SizedBox(height: 20),
                 SizedBox(
                   height: 50,
                   width: double.maxFinite,

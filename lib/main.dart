@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:ifeventos/views/home/home.dart';
-import 'package:ifeventos/views/signIn/sign-in.dart';
 import 'package:ifeventos/views/splash-screen/splash-screen.dart';
 
 void main() async {
@@ -21,8 +19,6 @@ class MyApp extends StatelessWidget {
         fontFamily: 'Nunito',
       ),
       home: SplashScreen()
-      // home: SignInScreen()
-      // home: HomeApp()
     );
   }
 }

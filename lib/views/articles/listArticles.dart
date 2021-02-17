@@ -21,7 +21,9 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
 
   final user = GetStorage().read('userData');
   DocumentSnapshot eventFull;
+  List<QuerySnapshot> articlesFull;
   bool _load = true;
+  bool _loadArticles = false;
   
   Map event = {
     "title": "VIII SEMIC - Semana de Iniciação Científica e Tecnológica 2020",
@@ -88,6 +90,10 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
   @override
   void initState() {
     getEvent();
+
+    // if(this.user["type"] == "GESTOR") 
+    //   getArticles();
+
     super.initState();
   }
 
@@ -96,6 +102,18 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
 
     setState(() {
       _load = false;
+    });
+  }
+
+  getArticles() async {
+    setState(() {
+      _loadArticles = true;
+    });
+
+    final a = await Firestore.instance.collection("events").document(widget.eventId).collection("articles").snapshots();
+    print(a.runtimeType);
+    setState(() {
+      _loadArticles = false;
     });
   }
 
@@ -198,8 +216,49 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
             ),
           ),
 
-          generateListArticles( e: _articles ),
+          _loadArticles ? 
+            Center(
+              child: CircularProgressIndicator()
+            ) :
+            StreamBuilder(
+              stream: Firestore.instance.collection("events").document(widget.eventId).collection("articles").snapshots(),
+              builder: (context, snapshot) {
+                switch(snapshot.connectionState) {
+                  case ConnectionState.none:
+                  case ConnectionState.waiting:
+                    return Center(
+                      child: CircularProgressIndicator()
+                    );
+                  default:
+                    if(snapshot.data.documents.length == 0) 
+                      return Container(
+                        width: double.maxFinite,
+                        padding: EdgeInsets.symmetric(horizontal: 5, vertical: 15),
+                        margin: EdgeInsets.only(bottom: 10),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.all(Radius.circular(5)),
+                        ),
+                        child: Text(
+                          this.user["type"] == "GESTOR" ?
+                          "Você ainda não adicionou nenhum trabalho" : 
+                          "Nenhum trabalho atribuído à você",
+                          style: TextStyle(
+                            fontSize: 16,
+                          ),
+                          textAlign: TextAlign.center,
+                        )
+                      );
 
+                    return Container(
+                      // child: Text(snapshot.data.documents[0].data["nome"].toString())
+                      child: generateListArticlesTest( e: snapshot.data.documents )
+                    );
+                }
+              }
+            ),
+
+          this.user["type"] == "AVALIADOR" ? 
           SizedBox(
             height: 50,
             width: double.maxFinite,
@@ -234,9 +293,141 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
                 ),
               ),
             ),
-          ),
+          ): SizedBox(),
         ],
       )
+    );
+  }
+
+  Widget generateListArticlesTest({ @required List e }) {
+    List<Widget> articles = new List<Widget>();
+    
+    e.forEach((el) {
+      articles.add(
+        InkWell(
+          onTap: () {
+            // Navigator.push(
+            //   context,
+            //   MaterialPageRoute(builder: (context) => RateArticleScreen(project: el,)),
+            // );
+          },
+          child: Container(
+            width: double.maxFinite,
+            padding: EdgeInsets.all(5),
+            margin: EdgeInsets.only(bottom: 10),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.all(Radius.circular(5)),
+              color: Colors.white
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Container(
+                  width: double.maxFinite,
+                  child: Stack(
+                    children: <Widget>[
+                      Text(
+                        el.data["titulo"],
+                        style: Theme.of(context).textTheme.headline6,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      // Positioned(
+                      //   right: 0,
+                      //   child: Tooltip(
+                      //     message: "Trabalho Avaliado",
+                      //     child: Icon(
+                      //       Icons.check_circle,
+                      //       color: el["evaluate"] ? Colors.green : Colors.transparent,
+                      //     ),
+                      //   )
+                      // )
+                    ],
+                  ),
+                ),
+                Divider(),
+                getAuthorsTest(name: el.data["nome"]),
+                addInfo(
+                  first: "Local: ",
+                  // last: el["local"],
+                  last: "???",
+                  fontSize: 14,
+                  color: Colors.grey[600],
+                  fontWeight: FontWeight.bold
+                ),
+                addInfo(
+                  first: "Número: ",
+                  // last: el["code"],
+                  last: "???",
+                  fontSize: 14,
+                  color: Colors.grey[600],
+                  fontWeight: FontWeight.bold
+                ),
+                addInfo(
+                  first: "Horário: ",
+                  // last: getHourEvent(hours: el["hour"]),
+                  last: "???",
+                  fontSize: 14,
+                  color: Colors.grey[600],
+                  fontWeight: FontWeight.bold
+                ),
+              
+              ],
+            ),
+          ),
+        )
+      );
+    });
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: articles
+    );
+  }
+
+  Widget getAuthorsTest({ @required String name }) {
+
+    int apresentadores = 0;
+    String a = "";
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        // RichText(
+        //   text: TextSpan(
+        //     text: "Apresentador:",
+        //     style: TextStyle(
+        //       color: Colors.grey[600],
+        //       fontWeight: FontWeight.bold
+        //     ),
+        //     children: [
+        //       TextSpan(
+        //         text: name,
+        //         style: Theme.of(context).textTheme.caption.merge(
+        //           TextStyle(fontSize: 14, color: Colors.grey[600],)
+        //         )
+        //       )
+        //     ]
+        //   )
+        // ),
+        RichText(
+          text: TextSpan(
+            text: "Autor: ",
+            style: TextStyle(
+              color: Colors.grey[600],
+              fontWeight: FontWeight.bold
+            ),
+            children: [
+              TextSpan(
+                text: name,
+                style: Theme.of(context).textTheme.caption.merge(
+                  TextStyle(fontSize: 14, color: Colors.grey[600],)
+                )
+              )
+            ]
+          )
+        )
+      ],
     );
   }
 

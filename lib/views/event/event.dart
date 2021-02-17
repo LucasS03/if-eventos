@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:ifeventos/views/articles/homeArticles.dart';
 import 'package:ifeventos/views/event/new-event/new-event.dart';
 import 'package:intl/intl.dart';
@@ -11,39 +12,8 @@ class EventScreen extends StatefulWidget {
 
 class _EventScreenState extends State<EventScreen> {
 
-  List _pev = [
-    {
-      "title": "VIII SEMIC - Semana de Iniciação Científica e Tecnológica 2020",
-      "date": "12/12/2020",
-      "hour": [
-        { "begin": "08:00", "end": "11:00" },
-        { "begin": "11:00", "end": "17:00" },
-      ],
-      "local": "IFCE Aracati - Rodovia CE-040, Km 137,1 s/n Aeroporto, CE"
-    }
-  ];
-
-  List _evf = [
-    {
-      "title": "VIII SEMIC - Semana de Iniciação Científica e Tecnológica 2019",
-      "date": "12/12/2019",
-      "hour": [
-        { "begin": "08:00", "end": "11:00" },
-        { "begin": "11:00", "end": "17:00" },
-      ],
-      "local": "IFCE Aracati - Rodovia CE-040, Km 137,1 s/n Aeroporto, CE"
-    },
-    {
-      "title": "VIII SEMIC - Semana de Iniciação Científica e Tecnológica 2018",
-      "date": "12/12/2018",
-      "hour": [
-        { "begin": "08:00", "end": "11:00" },
-        { "begin": "11:00", "end": "17:00" },
-      ],
-      "local": "IFCE Aracati - Rodovia CE-040, Km 137,1 s/n Aeroporto, CE"
-    }
-  ];
-
+  final user = GetStorage().read('userData');
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -52,6 +22,7 @@ class _EventScreenState extends State<EventScreen> {
         title: Text("Eventos"),
         automaticallyImplyLeading: false,
         actions: [
+          this.user["type"] == "GESTOR" ?
           IconButton(
             tooltip: "Adicionar Evento",
             icon: Icon(Icons.add_circle_outline, size: 30),
@@ -61,7 +32,7 @@ class _EventScreenState extends State<EventScreen> {
                 MaterialPageRoute(builder: (context) => NewEventScreen()),
               );
             }
-          )
+          ) : SizedBox()
         ],
       ),
 
