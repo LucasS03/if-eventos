@@ -181,26 +181,26 @@ class _SendArticlesScreenState extends State<SendArticlesScreen> {
                   ),
                 ),
 
-                SizedBox(height: 20),
-                SizedBox(
-                  height: 50,
-                  width: double.maxFinite,
-                  child: RaisedButton(
-                    onPressed: () { 
+                // SizedBox(height: 20),
+                // SizedBox(
+                //   height: 50,
+                //   width: double.maxFinite,
+                //   child: RaisedButton(
+                //     onPressed: () { 
                       
-                    },
-                    color: Colors.green,
-                    child: Text(
-                      "Enviar Arquivo",
-                      style: TextStyle(
-                        fontFamily: 'Nunito',
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white
-                      ),
-                    ),
-                  ),
-                )
+                //     },
+                //     color: Colors.green,
+                //     child: Text(
+                //       "Enviar Arquivo",
+                //       style: TextStyle(
+                //         fontFamily: 'Nunito',
+                //         fontSize: 18,
+                //         fontWeight: FontWeight.w600,
+                //         color: Colors.white
+                //       ),
+                //     ),
+                //   ),
+                // )
               ]
             ),
           )

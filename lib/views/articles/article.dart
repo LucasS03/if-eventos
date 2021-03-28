@@ -94,10 +94,10 @@ class _ArticleScreenState extends State<ArticleScreen> {
                   Expanded(
                     child: buttonAction(
                       onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => RateArticleScreen(project: _article,)),
-                        );
+                        // Navigator.push(
+                        //   context,
+                        //   MaterialPageRoute(builder: (context) => RateArticleScreen(project: _article,)),
+                        // );
                       },
                       title: "Avaliar Trabalho",
                       icon: Icons.assignment

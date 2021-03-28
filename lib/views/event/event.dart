@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:ifeventos/views/articles/homeArticles.dart';
 import 'package:ifeventos/views/event/new-event/new-event.dart';
+import 'package:ifeventos/widgets/custom-dialog-box.dart';
 import 'package:intl/intl.dart';
 
 class EventScreen extends StatefulWidget {
@@ -13,7 +14,8 @@ class EventScreen extends StatefulWidget {
 class _EventScreenState extends State<EventScreen> {
 
   final user = GetStorage().read('userData');
-  
+  final userId = GetStorage().read('userId');
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -146,6 +148,93 @@ class _EventScreenState extends State<EventScreen> {
                   maxLines: 3,
                   overflow: TextOverflow.ellipsis,
                 ),
+
+                FutureBuilder(
+                  future: isEvaluatorOfThisEvent(el.documentID),
+                  builder: (context, snapshot) {
+                    switch(snapshot.connectionState) {
+                      case ConnectionState.none:
+                      case ConnectionState.waiting:
+                        return Center(
+                          child: CircularProgressIndicator()
+                        );
+                      default:
+                        // TODO: mostrar quando:
+                        // a data de inicio > data atual
+                        // se for perfil de avaliador
+                        // se já não for avaliador deste evento
+                        return !snapshot.data && this.user["type"] == "AVALIADOR" ?
+                        Padding(
+                          padding: const EdgeInsets.only(top: 10),
+                          child: SizedBox(
+                            height: 40,
+                            width: double.maxFinite,
+                            child: FlatButton(
+                              disabledColor: Colors.grey,
+                              color: Color(0xFF305745),
+                              shape: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(5.0),
+                                borderSide: BorderSide(color: Colors.transparent)
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: <Widget>[
+                                  Text(
+                                    "Quero ser avaliador", 
+                                    style: TextStyle(
+                                      color: Colors.white, 
+                                      fontSize: 20
+                                    ),
+                                  )
+                                ],
+                              ),
+                              onPressed: () {
+                                Firestore.instance.collection("events")
+                                  .document(el.documentID)
+                                  .collection("evaluators")
+                                  .document(userId)
+                                  .setData({
+                                    "userId": userId
+                                  }).then((value) {
+                                    Firestore.instance
+                                      .collection("users").document(userId)
+                                      .collection("events_attended").add({
+                                        "eventId": el.documentID
+                                      });
+                                    
+                                    showDialog(context: context,
+                                      builder: (BuildContext context){
+                                        return CustomDialogBox(
+                                          title: "Tudo certo!",
+                                          descriptions: "Você foi adicionado como avaliador neste evento. Em breve o coordenador deve alocar alguns trabalhos para você avaliar.",
+                                          text: "Ok",
+                                          icon: Icons.check,
+                                          iconColor: Colors.white,
+                                          color: Colors.greenAccent,
+                                        );
+                                      }
+                                    );
+                                  }).catchError((err) => {
+                                    showDialog(context: context,
+                                      builder: (BuildContext context){
+                                        return CustomDialogBox(
+                                          title: "Ops... :(",
+                                          descriptions: "Desculpe!\nHouve um erro ao adicionar você como avaliador deste evento.\nQue tal tentar novamente?",
+                                          text: "Voltar",
+                                          icon: Icons.close,
+                                          iconColor: Colors.white,
+                                          color: Colors.redAccent
+                                        );
+                                      }
+                                    )
+                                  });
+                              },
+                            ),
+                          ),
+                        ) : SizedBox();
+                    }
+                  }
+                ),
               ],
             ),
           ),
@@ -156,6 +245,12 @@ class _EventScreenState extends State<EventScreen> {
     return Column(
       children: events
     );
+  }
+
+  Future<bool> isEvaluatorOfThisEvent(String eventId) async {
+    DocumentSnapshot evaluator = await Firestore.instance.collection("events").document(eventId).collection("evaluators").document(userId).snapshots().first;
+    
+    return evaluator.data != null;
   }
 
   Widget generateListEvents({ @required List e }) {

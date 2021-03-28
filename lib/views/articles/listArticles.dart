@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:ifeventos/views/articles/allocate-article/allocateArticle.dart';
 import 'package:ifeventos/views/articles/rate/rateArticle.dart';
 import 'package:ifeventos/views/articles/sendArticles.dart';
 import 'package:ifeventos/widgets/custom-dialog.dart';
@@ -20,101 +21,53 @@ class ListArticlesScreen extends StatefulWidget {
 class _ListArticlesScreenState extends State<ListArticlesScreen> {
 
   final user = GetStorage().read('userData');
+  final userId = GetStorage().read('userId');
   DocumentSnapshot eventFull;
-  List<QuerySnapshot> articlesFull;
+  List<DocumentSnapshot> articlesFull = new List<DocumentSnapshot>();
   bool _load = true;
   bool _loadArticles = false;
-  
-  Map event = {
-    "title": "VIII SEMIC - Semana de Iniciação Científica e Tecnológica 2020",
-    "date": "12/12/2020",
-    "hour": [
-      { "begin": "08:00", "end": "11:00" },
-      { "begin": "11:00", "end": "17:00" },
-    ],
-    "local": "IFCE Aracati - Rodovia CE-040, Km 137,1 s/n Aeroporto, CE"
-  };
-
-  List _articles = [
-    {
-      "title": "Sistema de Videomonitoramento Utilizando Reconhecimento Facial",
-      "authors": [
-        {
-          "name": "Augusto Franco Soares de Moura",
-          "presenter": true
-        },
-        {
-          "name": "Carina Teixeira de Oliveira",
-          "presenter": false
-        }
-      ],
-      "evaluate": true,
-      "local": "1° Andar",
-      "code": "15",
-      "hour": [
-        { "begin": "08:00", "end": "11:00" }
-      ]
-    },
-    {
-      "title": "Aplicação de Tecnicas de Machine Learning na Análise Automatizada do Mercado Financeiro",
-      "authors": [
-        {
-          "name": "Alexandre Pereira da Silva",
-          "presenter": true
-        }
-      ],
-      "evaluate": false,
-      "local": "1° Andar",
-      "code": "18",
-      "hour": [
-        { "begin": "08:00", "end": "11:00" }
-      ]
-    },
-    {
-      "title": "Mancha Branca? Antes e Hoje",
-      "authors": [
-        {
-          "name": "Antônio José Felipe Cosme",
-          "presenter": true
-        }
-      ],
-      "evaluate": false,
-      "local": "2° Andar",
-      "code": "25",
-      "hour": [
-        { "begin": "13:00", "end": "17:00" }
-      ]
-    },
-  ];
 
   @override
   void initState() {
     getEvent();
-
-    // if(this.user["type"] == "GESTOR") 
-    //   getArticles();
 
     super.initState();
   }
 
   getEvent() async {
     eventFull = await Firestore.instance.collection("events").document(widget.eventId).snapshots().first;
+    if(this.user["type"] == "AVALIADOR")
+      getArticlesByEvaluator();
 
     setState(() {
       _load = false;
     });
   }
 
-  getArticles() async {
-    setState(() {
-      _loadArticles = true;
+  getArticlesByEvaluator() async {
+    setState(() => _loadArticles = true);
+
+    final evaluator = await Firestore.instance.
+      collection("events").document(widget.eventId).
+      collection("evaluators").document(userId).get();
+    
+    List list = evaluator.data["articleIds"];
+
+    list.forEach((el) async {
+      DocumentSnapshot article = await Firestore.instance.
+        collection("events").document(widget.eventId).
+        collection("articles").document(el).snapshots().first;
+
+      print(article.data);
+      articlesFull.add(article);
     });
 
-    final a = await Firestore.instance.collection("events").document(widget.eventId).collection("articles").snapshots();
-    print(a.runtimeType);
-    setState(() {
-      _loadArticles = false;
-    });
+    setState(() => _loadArticles = false);
+  }
+
+  Future<bool> isEvaluatorOfThisEvent(String eventId) async {
+    DocumentSnapshot evaluator = await Firestore.instance.collection("events").document(eventId).collection("evaluators").document(userId).snapshots().first;
+    return evaluator != null && evaluator.data != null;
   }
 
   timestampToDateTimeFormated(seconds) {
@@ -128,7 +81,7 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
       backgroundColor: Color(0xffdddddd),
       appBar: AppBar(
         title: Text(
-          event["title"],
+          _load ? '...' : eventFull.data["title"],
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
@@ -195,7 +148,6 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
                 eventFull.data["site"] != "" ?
                 InkWell(
                   child: Text(
-                    // "http://prpi.ifce.edu.br/nl/e/?id=106",
                     eventFull.data["site"],
                     style: Theme.of(context).textTheme.headline6.merge(
                       TextStyle(
@@ -220,6 +172,7 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
             Center(
               child: CircularProgressIndicator()
             ) :
+            this.user["type"] == "GESTOR" ? 
             StreamBuilder(
               stream: Firestore.instance.collection("events").document(widget.eventId).collection("articles").snapshots(),
               builder: (context, snapshot) {
@@ -239,32 +192,49 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
                           color: Colors.white,
                           borderRadius: BorderRadius.all(Radius.circular(5)),
                         ),
-                        child: Text(
-                          this.user["type"] == "GESTOR" ?
-                          "Você ainda não adicionou nenhum trabalho" : 
-                          "Nenhum trabalho atribuído à você",
-                          style: TextStyle(
-                            fontSize: 16,
-                          ),
-                          textAlign: TextAlign.center,
+                        child: FutureBuilder(
+                          future: isEvaluatorOfThisEvent(widget.eventId),
+                          // ignore: missing_return
+                          builder: (context, snapshot) {
+                            switch(snapshot.connectionState) {
+                              default:
+                                return Text(
+                                  this.user["type"] == "GESTOR" ?
+                                  "Você ainda não adicionou nenhum trabalho" : 
+                                  snapshot.data ? "Nenhum trabalho atribuído à você" :
+                                  "Você não é um avaliador deste evento",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                );
+                            }
+                          }
                         )
                       );
 
                     return Container(
-                      // child: Text(snapshot.data.documents[0].data["nome"].toString())
                       child: generateListArticlesTest( e: snapshot.data.documents )
                     );
                 }
               }
-            ),
+            ) : 
+            articlesFull.length == 0  ? 
+              Text("Nenhum trabalho atribuído à você",
+                style: TextStyle(fontSize: 16),
+                textAlign: TextAlign.center,
+              ) :
+              Container(
+                child: generateListArticlesTest( e: articlesFull )
+              ),
 
           this.user["type"] == "AVALIADOR" ? 
           SizedBox(
             height: 50,
             width: double.maxFinite,
             child: RaisedButton(
-              onPressed: _articles.indexWhere((e) => e["evaluate"] == false) >= 0 ? null :
-              () {
+              // _articles.indexWhere((e) => e["evaluate"] == false) >= 0 ? null :
+              onPressed: () {
                 showDialog(
                   context: context,
                   barrierDismissible: false,
@@ -306,10 +276,14 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
       articles.add(
         InkWell(
           onTap: () {
-            // Navigator.push(
-            //   context,
-            //   MaterialPageRoute(builder: (context) => RateArticleScreen(project: el,)),
-            // );
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => 
+                this.user["type"] == "AVALIADOR" ? 
+                  RateArticleScreen(eventId: eventFull.documentID, projectId: el.documentID) :
+                  AllocateArticleScreen(eventId: eventFull.documentID, articleId: el.documentID)
+              ),
+            );
           },
           child: Container(
             width: double.maxFinite,
@@ -428,88 +402,6 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
           )
         )
       ],
-    );
-  }
-
-  Widget generateListArticles({ @required List e }) {
-    List<Widget> articles = new List<Widget>();
-    
-    e.forEach((el) {
-      articles.add(
-        InkWell(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => RateArticleScreen(project: el,)),
-            );
-          },
-          child: Container(
-            width: double.maxFinite,
-            padding: EdgeInsets.all(5),
-            margin: EdgeInsets.only(bottom: 10),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.all(Radius.circular(5)),
-              color: Colors.white
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Container(
-                  width: double.maxFinite,
-                  child: Stack(
-                    children: <Widget>[
-                      Text(
-                        el["title"], 
-                        style: Theme.of(context).textTheme.headline6,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      Positioned(
-                        right: 0,
-                        child: Tooltip(
-                          message: "Trabalho Avaliado",
-                          child: Icon(
-                            Icons.check_circle,
-                            color: el["evaluate"] ? Colors.green : Colors.transparent,
-                          ),
-                        )
-                      )
-                    ],
-                  ),
-                ),
-                Divider(),
-                getAuthors(authors: el["authors"]),
-                addInfo(
-                  first: "Local: ",
-                  last: el["local"],
-                  fontSize: 14,
-                  color: Colors.grey[600],
-                  fontWeight: FontWeight.bold
-                ),
-                addInfo(
-                  first: "Número: ",
-                  last: el["code"],
-                  fontSize: 14,
-                  color: Colors.grey[600],
-                  fontWeight: FontWeight.bold
-                ),
-                addInfo(
-                  first: "Horário: ",
-                  last: getHourEvent(hours: el["hour"]),
-                  fontSize: 14,
-                  color: Colors.grey[600],
-                  fontWeight: FontWeight.bold
-                ),
-              ],
-            ),
-          ),
-        )
-      );
-    });
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: articles
     );
   }
 

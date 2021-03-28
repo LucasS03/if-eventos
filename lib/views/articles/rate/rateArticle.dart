@@ -1,5 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 import 'package:flutter/material.dart';
+import 'package:get_storage/get_storage.dart';
+import 'package:ifeventos/widgets/custom-dialog-box.dart';
 import 'package:intl/intl.dart';
 import 'package:ifeventos/widgets/custom-card.dart';
 import 'package:ifeventos/widgets/custom-dialog.dart';
@@ -7,8 +10,10 @@ import 'package:url_launcher/url_launcher.dart';
 
 class RateArticleScreen extends StatefulWidget {
 
-  final Map<String, dynamic> project;
-  RateArticleScreen({ this.project });
+  final String eventId;
+  final String projectId;
+
+  RateArticleScreen({ @required this.eventId, @required this.projectId });
 
   @override
   _RateArticleScreenState createState() => _RateArticleScreenState();
@@ -16,6 +21,7 @@ class RateArticleScreen extends StatefulWidget {
 
 class _RateArticleScreenState extends State<RateArticleScreen> {
 
+  final userId = GetStorage().read('userId');
   final String _oral = "ORAL";
   final String _poster = "POSTER";
 
@@ -38,6 +44,52 @@ class _RateArticleScreenState extends State<RateArticleScreen> {
     });
   }
 
+  DocumentSnapshot article;
+  bool _load = true;
+  
+  getArticle() async {
+    article = await Firestore.instance.
+      collection("events").document(widget.eventId).
+      collection("articles").document(widget.projectId).snapshots().first;
+
+    print(article.data);
+    setState(() {
+      _load = false;
+    });
+  }
+
+  getEvaluation() async {
+    DocumentSnapshot eval = await Firestore.instance.
+                      collection("events").document(widget.eventId).
+                      collection("articles").document(widget.projectId).
+                      collection("evaluations").document(userId).snapshots().first;
+    
+    if(eval.data != null) {
+      setState(() {
+        _radioValue = eval.data["modality"];
+        _date = DateTime.fromMillisecondsSinceEpoch(eval.data["date"].seconds * 1000);
+        _item1 = eval.data["clarity"];
+        _item2 = eval.data["reasoning"];
+        _item3 = eval.data["methodologyAdequacy"];
+        _item4 = eval.data["domain"];
+        _item5 = eval.data["quality"];
+        _item1changed = true;
+        _item2changed = true;
+        _item3changed = true;
+        _item4changed = true;
+        _item5changed = true;
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    getArticle();
+    getEvaluation();
+
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -48,36 +100,52 @@ class _RateArticleScreenState extends State<RateArticleScreen> {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
-        actions: <Widget>[
-          IconButton(
-            icon: Icon(Icons.file_download),
-            onPressed: () => launch("http://www.uenf.br/Uenf/Downloads/Agenda_Social_8427_1312371250.pdf"),
-            color: Colors.white,
-            tooltip: "Baixar Artigo"
-          )
-        ],
+        // actions: <Widget>[
+        //   IconButton(
+        //     icon: Icon(Icons.file_download),
+        //     onPressed: () => launch("http://www.uenf.br/Uenf/Downloads/Agenda_Social_8427_1312371250.pdf"),
+        //     color: Colors.white,
+        //     tooltip: "Baixar Artigo"
+        //   )
+        // ],
       ),
 
       body: SingleChildScrollView(
         child: Container(
           padding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
-          child: Column(
+          child: 
+          _load ? 
+          Center(
+            child: CircularProgressIndicator()
+          ) :
+          Column(
             children: <Widget>[
-              
+              // Dados trabalho
               CustomCard(
                 body: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     Text(
-                      widget.project["title"],
+                      article.data["titulo"],
                       style: Theme.of(context).textTheme.headline6,
                     ),
                     Divider(),
-                    getAuthors(authors: widget.project["authors"])
+
+                    Text(
+                      "Autor(es):",
+                      style: Theme.of(context).textTheme.headline6.merge(
+                        TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600
+                        )
+                      ),
+                    ),
+                    getAuthors(authors: [{ "name": article.data["nome"] }])
                   ],
                 )
               ),
 
+              // Modalidade
               CustomCard(
                 body: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -127,6 +195,7 @@ class _RateArticleScreenState extends State<RateArticleScreen> {
                 )
               ),
 
+              // Data
               CustomCard(
                 body: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -156,6 +225,7 @@ class _RateArticleScreenState extends State<RateArticleScreen> {
                 )
               ),
 
+              // 1 - Clareza na relevância do tema
               CustomCard(
                 body: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -198,6 +268,7 @@ class _RateArticleScreenState extends State<RateArticleScreen> {
                 )
               ),
 
+              // 2 - Fundamentação
               CustomCard(
                 body: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -239,6 +310,7 @@ class _RateArticleScreenState extends State<RateArticleScreen> {
                 )
               ),
 
+              // 3 - Adequação da metodologia
               CustomCard(
                 body: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -281,6 +353,7 @@ class _RateArticleScreenState extends State<RateArticleScreen> {
                 )
               ),
 
+              // 4 - Domínio do conteúdo
               CustomCard(
                 body: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -323,6 +396,7 @@ class _RateArticleScreenState extends State<RateArticleScreen> {
                 )
               ),
 
+              // 5 - Qualidade da organização e apresentação
               CustomCard(
                 body: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -390,24 +464,35 @@ class _RateArticleScreenState extends State<RateArticleScreen> {
                   onPressed: 
                   _item1changed && _item2changed && _item3changed && _item4changed && _item5changed ? 
                   () {
-                    showDialog(
-                      context: context,
-                      barrierDismissible: false,
-                      builder: (BuildContext context) => CustomDialog(
-                        title: "Trabalho Avaliado",
-                        content: Column(
-                          children: <Widget>[
-                            Text(
-                              "Trabalho avaliado com sucesso!",
-                              style: TextStyle(fontSize: 18),
-                            )
-                          ],
-                        ),
-                        buttonText: "Ok",
-                        skipScreen: true,
-                      ),
-                    );
-                    
+                    Map<String, dynamic> eval = {
+                      "date": _date,
+                      "modality": _radioValue,
+                      "clarity": _item1,
+                      "reasoning": _item2,
+                      "methodologyAdequacy": _item3,
+                      "domain": _item4,
+                      "quality": _item5,
+                      "idEvaluator": userId,
+                      "finished": false
+                    };
+                    Firestore.instance.
+                      collection("events").document(widget.eventId).
+                      collection("articles").document(widget.projectId).
+                      collection("evaluations").document(userId).setData(eval).then((value) {
+                        showDialog(context: context,
+                          builder: (BuildContext context){
+                            return CustomDialogBox(
+                              title: "Tudo Certo!",
+                              descriptions: "Sua avaliação foi salva! Não esqueça de entregar para o coordenador do evento. Após entregar não será mais possível editar as avaliações.",
+                              text: "Ok",
+                              icon: Icons.check,
+                              iconColor: Colors.white,
+                              color: Colors.greenAccent,
+                              skipScreen: true,
+                            );
+                          }
+                        );
+                      });                    
                   } : null,
                 ),
               )
@@ -426,21 +511,17 @@ class _RateArticleScreenState extends State<RateArticleScreen> {
         Container(
           width: double.maxFinite,
           margin: EdgeInsets.only(bottom: authors[authors.length - 1] != el ? 10 : 0),
-          child: Row(
-            children: <Widget>[
-              CircleAvatar(
-                backgroundColor: Colors.grey,
-                child: Icon(Icons.person, color: Colors.grey[200]),
-              ),
-              SizedBox(width: 10),
-              Text(el["name"])
-            ],
+          child: Text(
+            el["name"],
+            overflow: TextOverflow.ellipsis,
           ),
         )
       );
     });
 
-    return Column(children: a);
+    return Container(
+      child: Column(children: a)
+    );
   }
 
 }
