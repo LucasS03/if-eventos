@@ -37,7 +37,7 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
   getEvent() async {
     eventFull = await Firestore.instance.collection("events").document(widget.eventId).snapshots().first;
     if(this.user["type"] == "AVALIADOR")
-      getArticlesByEvaluator();
+      await getArticlesByEvaluator();
 
     setState(() {
       _load = false;
@@ -59,7 +59,11 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
         collection("articles").document(el).snapshots().first;
 
       print(article.data);
-      articlesFull.add(article);
+      // ver se já foi avaliado e adicionar atributo ao article.data
+      // vai ser útil para o botão de "entregar avaliações"
+      // só vai ser possível entregar, se tiver avaliado todos os trabalhos.
+      // (ver como fica caso ninguém apresente o trabalho)
+      setState(() => articlesFull.add(article));
     });
 
     setState(() => _loadArticles = false);
@@ -157,7 +161,7 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
                       )
                     )
                   ),
-                  onTap: () => launch("http://prpi.ifce.edu.br/nl/e/?id=106"),
+                  onTap: () => launch(eventFull.data["site"]),
                 ) : SizedBox(),
                 
                 // addInfo(first: "Data: ", last: "${event["date"]}"),

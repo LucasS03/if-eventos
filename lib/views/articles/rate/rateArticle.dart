@@ -25,6 +25,7 @@ class _RateArticleScreenState extends State<RateArticleScreen> {
   final String _oral = "ORAL";
   final String _poster = "POSTER";
 
+  bool _didNotAttend = false;
   String _radioValue = "ORAL";
   DateTime _date = DateTime.now();
   double _item1 = 3;
@@ -73,6 +74,7 @@ class _RateArticleScreenState extends State<RateArticleScreen> {
         _item3 = eval.data["methodologyAdequacy"];
         _item4 = eval.data["domain"];
         _item5 = eval.data["quality"];
+        _didNotAttend = eval.data["didNotAttend"] != null ? eval.data["didNotAttend"] : false;
         _item1changed = true;
         _item2changed = true;
         _item3changed = true;
@@ -142,6 +144,117 @@ class _RateArticleScreenState extends State<RateArticleScreen> {
                     ),
                     getAuthors(authors: [{ "name": article.data["nome"] }])
                   ],
+                )
+              ),
+
+              // Não Compareceu
+              CustomCard(
+                color: Colors.yellow[200],
+                body: Column(
+                  children: <Widget>[
+                    RichText(
+                      text: TextSpan(
+                        style: Theme.of(context).textTheme.headline6.merge(
+                          TextStyle(fontSize: 16)
+                        ),
+                        children: _didNotAttend ? 
+                        <TextSpan>[
+                          TextSpan(text: "Caso o apresentador tenha comparecido, clique no botão abaixo \""),
+                          TextSpan(text: "Compareceu", style: new TextStyle(fontWeight: FontWeight.bold)),
+                          TextSpan(text: "\" para liberar a avaliação.")
+                        ] :
+                        <TextSpan>[
+                          TextSpan(text: "Caso o apresentador não tenha comparecido, clique no botão abaixo \""),
+                          TextSpan(text: "Não Compareceu", style: new TextStyle(fontWeight: FontWeight.bold)),
+                          TextSpan(text: "\" e em seguida clique em \""),
+                          TextSpan(text: "Finalizar avaliação", style: new TextStyle(fontWeight: FontWeight.bold)),
+                          TextSpan(text: "\"."),
+                        ]
+                      ),
+                    ),
+                    SizedBox(height: 10),
+                    SizedBox(
+                      height: 50,
+                      width: double.maxFinite,
+                      child: FlatButton(
+                        color: Colors.yellow[800],
+                        shape: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(5.0),
+                          borderSide: BorderSide(color: Colors.transparent)
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: <Widget>[
+                            Text(
+                              _didNotAttend ? "Compareceu" : "Não Compareceu", 
+                              style: TextStyle(
+                                color: Colors.white, 
+                                fontSize: 20
+                              ),
+                            )
+                          ],
+                        ),
+                        onPressed: () {
+                          if(_didNotAttend) {
+                            setState(() {
+                              _didNotAttend = !_didNotAttend;
+                              _item1 = _item2 = _item3 = _item4 = _item5 = _didNotAttend ? 1.0 : 3.0;
+                            });
+                          } else {
+                            showDialog(context: context,
+                              builder: (BuildContext context){
+                                return new AlertDialog(
+                                  title: new Text("Tem certeza?"),
+                                  content: Container(
+                                    height: 100.0,
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: <Widget> [
+                                        RichText(
+                                          text: TextSpan(
+                                            style: Theme.of(context).textTheme.headline6.merge(TextStyle(fontSize: 16)),
+                                            children: <TextSpan>[
+                                              TextSpan(text: "Ao clicar em "),
+                                              TextSpan(text: "SIM ", style: new TextStyle(fontWeight: FontWeight.bold, color: Colors.green)),
+                                              TextSpan(text: "você informa que o apresentador não compareceu.")
+                                            ]
+                                          ),
+                                        ),
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.end,
+                                          children: [
+                                            FlatButton(
+                                              color: Colors.green,
+                                              onPressed: () {
+                                                setState(() {
+                                                  _didNotAttend = !_didNotAttend;
+                                                  _item1 = _item2 = _item3 = _item4 = _item5 = _didNotAttend ? 1.0 : 3.0;
+                                                });
+                                                Navigator.of(context).pop();
+                                              }, 
+                                              child: Text("SIM", style: TextStyle(color: Colors.white))
+                                            ),
+                                            SizedBox(width: 10.0),
+                                            FlatButton(
+                                              color: Colors.redAccent[200],
+                                              onPressed: () {
+                                                Navigator.of(context).pop();
+                                              }, 
+                                              child: Text("NÃO", style: TextStyle(color: Colors.white))
+                                            ),
+                                          ],
+                                        )
+                                      ]
+                                    )
+                                  )
+                                );
+                              }
+                            );
+                          }
+                        }
+                      ),
+                    )
+                  ]
                 )
               ),
 
@@ -254,7 +367,7 @@ class _RateArticleScreenState extends State<RateArticleScreen> {
                             onChangeStart: (d) {
                               setState(() => _item1changed = true);
                             },
-                            onChanged: (double value) {
+                            onChanged: _didNotAttend ? null : (double value) {
                               setState(() {
                                 _item1 = value;
                               });
@@ -296,7 +409,7 @@ class _RateArticleScreenState extends State<RateArticleScreen> {
                             onChangeStart: (d) {
                               setState(() => _item2changed = true);
                             },
-                            onChanged: (double value) {
+                            onChanged: _didNotAttend ? null : (double value) {
                               setState(() {
                                 _item2 = value;
                               });
@@ -339,7 +452,7 @@ class _RateArticleScreenState extends State<RateArticleScreen> {
                             onChangeStart: (d) {
                               setState(() => _item3changed = true);
                             },
-                            onChanged: (double value) {
+                            onChanged: _didNotAttend ? null : (double value) {
                               setState(() {
                                 _item3 = value;
                               });
@@ -382,7 +495,7 @@ class _RateArticleScreenState extends State<RateArticleScreen> {
                             onChangeStart: (d) {
                               setState(() => _item4changed = true);
                             },
-                            onChanged: (double value) {
+                            onChanged: _didNotAttend ? null : (double value) {
                               setState(() {
                                 _item4 = value;
                               });
@@ -425,7 +538,7 @@ class _RateArticleScreenState extends State<RateArticleScreen> {
                             onChangeStart: (d) {
                               setState(() => _item5changed = true);
                             },
-                            onChanged: (double value) {
+                            onChanged: _didNotAttend ? null : (double value) {
                               setState(() {
                                 _item5 = value;
                               });
@@ -462,7 +575,7 @@ class _RateArticleScreenState extends State<RateArticleScreen> {
                     ],
                   ),
                   onPressed: 
-                  _item1changed && _item2changed && _item3changed && _item4changed && _item5changed ? 
+                  _didNotAttend || (_item1changed && _item2changed && _item3changed && _item4changed && _item5changed) ? 
                   () {
                     Map<String, dynamic> eval = {
                       "date": _date,
@@ -473,6 +586,7 @@ class _RateArticleScreenState extends State<RateArticleScreen> {
                       "domain": _item4,
                       "quality": _item5,
                       "idEvaluator": userId,
+                      "didNotAttend": _didNotAttend,
                       "finished": false
                     };
                     Firestore.instance.
