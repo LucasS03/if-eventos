@@ -25,6 +25,7 @@ class _RateArticleScreenState extends State<RateArticleScreen> {
   final String _oral = "ORAL";
   final String _poster = "POSTER";
 
+  bool _finished = false;
   bool _didNotAttend = false;
   String _radioValue = "ORAL";
   DateTime _date = DateTime.now();
@@ -75,6 +76,7 @@ class _RateArticleScreenState extends State<RateArticleScreen> {
         _item4 = eval.data["domain"];
         _item5 = eval.data["quality"];
         _didNotAttend = eval.data["didNotAttend"] != null ? eval.data["didNotAttend"] : false;
+        _finished = eval.data["finished"] != null ? eval.data["finished"] : false;
         _item1changed = true;
         _item2changed = true;
         _item3changed = true;
@@ -147,6 +149,19 @@ class _RateArticleScreenState extends State<RateArticleScreen> {
                 )
               ),
 
+              _finished ? 
+              CustomCard(
+                color: Colors.green[100],
+                body: Text(
+                  "Trabalho já avaliado e entregue. Não pode mais ser editado.",
+                  style: Theme.of(context).textTheme.headline6.merge(
+                    TextStyle(fontSize: 16, fontWeight: FontWeight.bold)
+                  ),
+                  textAlign: TextAlign.center,
+                )
+              ) :
+              SizedBox(),
+
               // Não Compareceu
               CustomCard(
                 color: Colors.yellow[200],
@@ -194,7 +209,7 @@ class _RateArticleScreenState extends State<RateArticleScreen> {
                             )
                           ],
                         ),
-                        onPressed: () {
+                        onPressed: _finished ? null : () {
                           if(_didNotAttend) {
                             setState(() {
                               _didNotAttend = !_didNotAttend;
@@ -277,10 +292,10 @@ class _RateArticleScreenState extends State<RateArticleScreen> {
                             Radio(
                               value: _oral, 
                               groupValue: _radioValue,
-                              onChanged: _handleRadioValueChange
+                              onChanged: _finished ? null : _handleRadioValueChange
                             ),
                             GestureDetector(
-                              onTap: () {
+                              onTap: _finished ? null : () {
                                 _handleRadioValueChange(_oral);
                               },
                               child: Text(_oral),
@@ -292,10 +307,10 @@ class _RateArticleScreenState extends State<RateArticleScreen> {
                             Radio(
                               value: _poster, 
                               groupValue: _radioValue,
-                              onChanged: _handleRadioValueChange
+                              onChanged: _finished ? null : _handleRadioValueChange
                             ),
                             GestureDetector(
-                              onTap: () {
+                              onTap: _finished ? null : () {
                                 _handleRadioValueChange(_poster);
                               },
                               child: Text(_poster),
@@ -324,7 +339,7 @@ class _RateArticleScreenState extends State<RateArticleScreen> {
                       format: DateFormat("dd/MM/yyyy"),
                       initialValue: DateTime.now(),
                       decoration: InputDecoration(labelText: 'Data'),
-                      onChanged: (dt) => setState(() => _date = dt),
+                      onChanged: _finished ? null : (dt) => setState(() => _date = dt),
                       onShowPicker: (context, currentValue) {
                         return showDatePicker(
                           context: context,
@@ -367,7 +382,7 @@ class _RateArticleScreenState extends State<RateArticleScreen> {
                             onChangeStart: (d) {
                               setState(() => _item1changed = true);
                             },
-                            onChanged: _didNotAttend ? null : (double value) {
+                            onChanged: _finished ? null : _didNotAttend ? null : (double value) {
                               setState(() {
                                 _item1 = value;
                               });
@@ -409,7 +424,7 @@ class _RateArticleScreenState extends State<RateArticleScreen> {
                             onChangeStart: (d) {
                               setState(() => _item2changed = true);
                             },
-                            onChanged: _didNotAttend ? null : (double value) {
+                            onChanged: _finished ? null : _didNotAttend ? null : (double value) {
                               setState(() {
                                 _item2 = value;
                               });
@@ -452,7 +467,7 @@ class _RateArticleScreenState extends State<RateArticleScreen> {
                             onChangeStart: (d) {
                               setState(() => _item3changed = true);
                             },
-                            onChanged: _didNotAttend ? null : (double value) {
+                            onChanged: _finished ? null : _didNotAttend ? null : (double value) {
                               setState(() {
                                 _item3 = value;
                               });
@@ -495,7 +510,7 @@ class _RateArticleScreenState extends State<RateArticleScreen> {
                             onChangeStart: (d) {
                               setState(() => _item4changed = true);
                             },
-                            onChanged: _didNotAttend ? null : (double value) {
+                            onChanged: _finished ? null : _didNotAttend ? null : (double value) {
                               setState(() {
                                 _item4 = value;
                               });
@@ -538,7 +553,7 @@ class _RateArticleScreenState extends State<RateArticleScreen> {
                             onChangeStart: (d) {
                               setState(() => _item5changed = true);
                             },
-                            onChanged: _didNotAttend ? null : (double value) {
+                            onChanged: _finished ? null : _didNotAttend ? null : (double value) {
                               setState(() {
                                 _item5 = value;
                               });
