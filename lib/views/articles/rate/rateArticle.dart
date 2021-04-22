@@ -203,7 +203,7 @@ class _RateArticleScreenState extends State<RateArticleScreen> {
                             Text(
                               _didNotAttend ? "Compareceu" : "Não Compareceu", 
                               style: TextStyle(
-                                color: Colors.white, 
+                                color: _finished ? Colors.grey[600] : Colors.white, 
                                 fontSize: 20
                               ),
                             )
