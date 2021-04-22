@@ -24,6 +24,7 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
   final userId = GetStorage().read('userId');
   DocumentSnapshot eventFull;
   List<DocumentSnapshot> articlesFull = new List<DocumentSnapshot>();
+  Map<String, bool> articlesEvaluated = {};
   bool _load = true;
   bool _loadArticles = false;
 
@@ -58,12 +59,14 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
         collection("events").document(widget.eventId).
         collection("articles").document(el).snapshots().first;
 
-      print(article.data);
-      // ver se já foi avaliado e adicionar atributo ao article.data
-      // vai ser útil para o botão de "entregar avaliações"
-      // só vai ser possível entregar, se tiver avaliado todos os trabalhos.
-      // (ver como fica caso ninguém apresente o trabalho)
-      setState(() => articlesFull.add(article));
+      DocumentSnapshot evaluation = await Firestore.instance.
+        collection("events").document(widget.eventId).
+        collection("articles").document(el).collection("evaluations").document(userId).snapshots().first;
+    
+      setState(() {
+        articlesFull.add(article);
+        articlesEvaluated[el] = evaluation.data != null ? true : false;
+      });
     });
 
     setState(() => _loadArticles = false);
@@ -295,7 +298,11 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
             margin: EdgeInsets.only(bottom: 10),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.all(Radius.circular(5)),
-              color: Colors.white
+              color: Colors.white,
+              border: Border.all(
+                color: articlesEvaluated[el.documentID] ? Colors.green : Colors.yellow,
+                width: 2
+              )
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -310,16 +317,17 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      // Positioned(
-                      //   right: 0,
-                      //   child: Tooltip(
-                      //     message: "Trabalho Avaliado",
-                      //     child: Icon(
-                      //       Icons.check_circle,
-                      //       color: el["evaluate"] ? Colors.green : Colors.transparent,
-                      //     ),
-                      //   )
-                      // )
+                      Positioned(
+                        right: 0,
+                        child: Tooltip(
+                          message: "Trabalho Avaliado",
+                          child: Icon(
+                            Icons.check_circle,
+                            color: articlesEvaluated[el.documentID] ? Colors.green : Colors.transparent,
+                            size: 30,
+                          ),
+                        )
+                      )
                     ],
                   ),
                 ),
