@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:ifeventos/views/articles/homeArticles.dart';
 import 'package:ifeventos/views/event/new-event/new-event.dart';
+import 'package:ifeventos/widgets/custom-card.dart';
 import 'package:ifeventos/widgets/custom-dialog-box.dart';
 import 'package:intl/intl.dart';
 
@@ -59,12 +60,10 @@ class _EventScreenState extends State<EventScreen> {
                           child: Column(
                             children: [
                               session(title: 'Próximos eventos', color: Colors.green, textColor: Colors.white),
-                              // TODO: dateEnd > date.now()
-                              generateListEventsTest(e: snapshot.data.documents),
+                              generateListEventsTest(e: snapshot.data.documents, isAfter: true),
                               
                               session(title: 'Eventos finalizados', color: Colors.orangeAccent, textColor: Colors.white),
-                              // TODO: dateEnd < date.now()
-                              generateListEventsTest(e: snapshot.data.documents),
+                              generateListEventsTest(e: snapshot.data.documents, isAfter: false),
                             ],
                           ),
                         ),
@@ -95,152 +94,166 @@ class _EventScreenState extends State<EventScreen> {
     return DateFormat('dd/MM/yyyy').format(date);
   }
 
-  Widget generateListEventsTest({ @required List e }) {
+  Widget generateListEventsTest({ @required List e, @required bool isAfter }) {
     List<Widget> events = new List<Widget>();
 
     e.forEach((el) {
-      events.add(
-        InkWell(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => HomeArticlesScreen(eventId: el.documentID)),
-            );
-          },
-          child: Container(
-            padding: EdgeInsets.all(5),
-            margin: EdgeInsets.only(bottom: 10),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.all(Radius.circular(5)),
-              color: Colors.white
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(
-                  el.data["title"], 
-                  style: Theme.of(context).textTheme.headline6,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Divider(),
-                Text(
-                  "Data: ${timestampToDateTimeFormated(el.data["dateBegin"].seconds)} à ${timestampToDateTimeFormated(el.data["dateEnd"].seconds)}",
-                  style: Theme.of(context).textTheme.headline6.merge(
-                    TextStyle(fontSize: 15)
-                  ),
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Text(
-                  "Horário:  ${el.data["hourBegin"]} às ${el.data["hourEnd"]}",
-                  style: Theme.of(context).textTheme.headline6.merge(
-                    TextStyle(fontSize: 15)
-                  ),
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Text(
-                  "Local: ${el.data["local"]}",
-                  style: Theme.of(context).textTheme.headline6.merge(
-                    TextStyle(fontSize: 15)
-                  ),
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                ),
+      DateTime dateEvent = DateTime.fromMillisecondsSinceEpoch(el.data["dateEnd"].seconds * 1000);
+      DateTime dateNow = new DateTime.now();
 
-                FutureBuilder(
-                  future: isEvaluatorOfThisEvent(el.documentID),
-                  builder: (context, snapshot) {
-                    switch(snapshot.connectionState) {
-                      case ConnectionState.none:
-                      case ConnectionState.waiting:
-                        return Center(
-                          child: CircularProgressIndicator()
-                        );
-                      default:
-                        // TODO: mostrar quando:
-                        // a data de inicio > data atual
-                        // se for perfil de avaliador
-                        // se já não for avaliador deste evento
-                        return !snapshot.data && this.user["type"] == "AVALIADOR" ?
-                        Padding(
-                          padding: const EdgeInsets.only(top: 10),
-                          child: SizedBox(
-                            height: 40,
-                            width: double.maxFinite,
-                            child: FlatButton(
-                              disabledColor: Colors.grey,
-                              color: Color(0xFF305745),
-                              shape: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(5.0),
-                                borderSide: BorderSide(color: Colors.transparent)
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: <Widget>[
-                                  Text(
-                                    "Quero ser avaliador", 
-                                    style: TextStyle(
-                                      color: Colors.white, 
-                                      fontSize: 20
-                                    ),
-                                  )
-                                ],
-                              ),
-                              onPressed: () {
-                                Firestore.instance.collection("events")
-                                  .document(el.documentID)
-                                  .collection("evaluators")
-                                  .document(userId)
-                                  .setData({
-                                    "userId": userId
-                                  }).then((value) {
-                                    Firestore.instance
-                                      .collection("users").document(userId)
-                                      .collection("events_attended").add({
-                                        "eventId": el.documentID
-                                      });
-                                    
-                                    showDialog(context: context,
-                                      builder: (BuildContext context){
-                                        return CustomDialogBox(
-                                          title: "Tudo certo!",
-                                          descriptions: "Você foi adicionado como avaliador neste evento. Em breve o coordenador deve alocar alguns trabalhos para você avaliar.",
-                                          text: "Ok",
-                                          icon: Icons.check,
-                                          iconColor: Colors.white,
-                                          color: Colors.greenAccent,
-                                        );
-                                      }
-                                    );
-                                  }).catchError((err) => {
-                                    showDialog(context: context,
-                                      builder: (BuildContext context){
-                                        return CustomDialogBox(
-                                          title: "Ops... :(",
-                                          descriptions: "Desculpe!\nHouve um erro ao adicionar você como avaliador deste evento.\nQue tal tentar novamente?",
-                                          text: "Voltar",
-                                          icon: Icons.close,
-                                          iconColor: Colors.white,
-                                          color: Colors.redAccent
-                                        );
-                                      }
+      if(isAfter ? dateEvent.isAfter(dateNow) : dateEvent.isBefore(dateNow)) {
+        events.add(
+          InkWell(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => HomeArticlesScreen(eventId: el.documentID)),
+              );
+            },
+            child: Container(
+              padding: EdgeInsets.all(5),
+              margin: EdgeInsets.only(bottom: 10),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.all(Radius.circular(5)),
+                color: Colors.white
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(
+                    el.data["title"], 
+                    style: Theme.of(context).textTheme.headline6,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  Divider(),
+                  Text(
+                    "Data: ${timestampToDateTimeFormated(el.data["dateBegin"].seconds)} à ${timestampToDateTimeFormated(el.data["dateEnd"].seconds)}",
+                    style: Theme.of(context).textTheme.headline6.merge(
+                      TextStyle(fontSize: 15)
+                    ),
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  Text(
+                    "Horário:  ${el.data["hourBegin"]} às ${el.data["hourEnd"]}",
+                    style: Theme.of(context).textTheme.headline6.merge(
+                      TextStyle(fontSize: 15)
+                    ),
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  Text(
+                    "Local: ${el.data["local"]}",
+                    style: Theme.of(context).textTheme.headline6.merge(
+                      TextStyle(fontSize: 15)
+                    ),
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+
+                  FutureBuilder(
+                    future: isEvaluatorOfThisEvent(el.documentID),
+                    builder: (context, snapshot) {
+                      switch(snapshot.connectionState) {
+                        case ConnectionState.none:
+                        case ConnectionState.waiting:
+                          return Center(
+                            child: CircularProgressIndicator()
+                          );
+                        default:
+                          return !snapshot.data && this.user["type"] == "AVALIADOR" && dateEvent.isAfter(dateNow) ?
+                          Padding(
+                            padding: const EdgeInsets.only(top: 10),
+                            child: SizedBox(
+                              height: 40,
+                              width: double.maxFinite,
+                              child: FlatButton(
+                                disabledColor: Colors.grey,
+                                color: Color(0xFF305745),
+                                shape: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(5.0),
+                                  borderSide: BorderSide(color: Colors.transparent)
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: <Widget>[
+                                    Text(
+                                      "Quero ser avaliador", 
+                                      style: TextStyle(
+                                        color: Colors.white, 
+                                        fontSize: 20
+                                      ),
                                     )
-                                  });
-                              },
+                                  ],
+                                ),
+                                onPressed: () {
+                                  Firestore.instance.collection("events")
+                                    .document(el.documentID)
+                                    .collection("evaluators")
+                                    .document(userId)
+                                    .setData({
+                                      "userId": userId
+                                    }).then((value) {
+                                      Firestore.instance
+                                        .collection("users").document(userId)
+                                        .collection("events_attended").add({
+                                          "eventId": el.documentID
+                                        });
+                                      
+                                      showDialog(context: context,
+                                        builder: (BuildContext context){
+                                          return CustomDialogBox(
+                                            title: "Tudo certo!",
+                                            descriptions: "Você foi adicionado como avaliador neste evento. Em breve o coordenador deve alocar alguns trabalhos para você avaliar.",
+                                            text: "Ok",
+                                            icon: Icons.check,
+                                            iconColor: Colors.white,
+                                            color: Colors.greenAccent,
+                                          );
+                                        }
+                                      );
+                                    }).catchError((err) => {
+                                      showDialog(context: context,
+                                        builder: (BuildContext context){
+                                          return CustomDialogBox(
+                                            title: "Ops... :(",
+                                            descriptions: "Desculpe!\nHouve um erro ao adicionar você como avaliador deste evento.\nQue tal tentar novamente?",
+                                            text: "Voltar",
+                                            icon: Icons.close,
+                                            iconColor: Colors.white,
+                                            color: Colors.redAccent
+                                          );
+                                        }
+                                      )
+                                    });
+                                },
+                              ),
                             ),
-                          ),
-                        ) : SizedBox();
+                          ) : SizedBox();
+                      }
                     }
-                  }
-                ),
-              ],
+                  ),
+                ],
+              ),
+            ),
+          )
+        );
+      }
+    });
+
+    if(events.isEmpty) {
+      events.add(
+        CustomCard(
+          body: Text(
+            isAfter ? "Nenhum evento programado para acontecer." : "Nenhum evento finalizado",
+            style: Theme.of(context).textTheme.headline6.merge(
+              TextStyle(fontSize: 16)
             ),
           ),
         )
       );
-    });
+    }
 
     return Column(
       children: events
