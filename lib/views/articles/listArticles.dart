@@ -4,7 +4,7 @@ import 'package:get_storage/get_storage.dart';
 import 'package:ifeventos/views/articles/allocate-article/allocateArticle.dart';
 import 'package:ifeventos/views/articles/rate/rateArticle.dart';
 import 'package:ifeventos/views/articles/sendArticles.dart';
-import 'package:ifeventos/widgets/custom-dialog.dart';
+import 'package:ifeventos/widgets/custom-dialog-box.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:core';
@@ -240,24 +240,48 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
             height: 50,
             width: double.maxFinite,
             child: RaisedButton(
-              // _articles.indexWhere((e) => e["evaluate"] == false) >= 0 ? null :
-              onPressed: () {
-                showDialog(
-                  context: context,
-                  barrierDismissible: false,
-                  builder: (BuildContext context) => CustomDialog(
-                    title: "Avaliações Enviadas",
-                    content: Column(
-                      children: <Widget>[
-                        Text(
-                          "Suas avaliações foram enviadas com sucesso!",
-                          style: TextStyle(fontSize: 18),
-                        )
-                      ],
-                    ),
-                    buttonText: "Ok"
-                  ),
-                );
+              onPressed: articlesEvaluated.values.any((e) => !e) ? null : () async {
+                
+                try {
+                  DocumentSnapshot evaluatorData = await Firestore.instance.
+                    collection("events").document(widget.eventId).
+                    collection("evaluators").document(userId).snapshots().first;
+                  
+                  List articleIds = evaluatorData.data["articleIds"];
+                  articleIds.forEach((article) async {
+                    await Firestore.instance.
+                      collection("events").document(widget.eventId).
+                      collection("articles").document(article).
+                      collection("evaluations").document(userId).updateData({ "finished": true });
+                  });
+
+                  showDialog(context: context,
+                    builder: (BuildContext context){
+                      return CustomDialogBox(
+                        title: "Avaliações enviadas!",
+                        descriptions: "Pronto! Todas suas avaliações foram entregues ao coordenador do evento e não será mais possível editá-las.\nObrigado por participar!",
+                        text: "Ok",
+                        icon: Icons.thumb_up_alt,
+                        iconColor: Colors.white,
+                        color: Colors.greenAccent,
+                      );
+                    }
+                  );
+                } catch (e) {
+                  showDialog(context: context,
+                    builder: (BuildContext context){
+                      return CustomDialogBox(
+                        title: "Ops...",
+                        descriptions: "Desculpe! Tivemos um erro ao enviar suas avaliações. Caso o erro persista, contate o coordenador do evento.",
+                        text: "Ok",
+                        icon: Icons.pan_tool,
+                        iconColor: Colors.white,
+                        color: Colors.redAccent
+                      );
+                    }
+                  );
+                }
+                
               },
               color: Colors.green,
               child: Text(
