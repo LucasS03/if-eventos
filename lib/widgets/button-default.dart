@@ -4,8 +4,9 @@ class ButtonDefault extends StatelessWidget {
   
   final String title;
   final GestureTapCallback onTap;
+  final Color color;
 
-  ButtonDefault({ @required this.title, @required this.onTap });
+  ButtonDefault({ @required this.title, @required this.onTap, this.color: Colors.green });
 
   @override
   Widget build(BuildContext context) {
@@ -14,7 +15,7 @@ class ButtonDefault extends StatelessWidget {
       width: double.maxFinite,
       child: RaisedButton(
         onPressed: onTap,
-        color: Colors.green,
+        color: color,
         child: Text(
           title,
           style: TextStyle(

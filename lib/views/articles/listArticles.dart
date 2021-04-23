@@ -324,7 +324,7 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
               borderRadius: BorderRadius.all(Radius.circular(5)),
               color: Colors.white,
               border: Border.all(
-                color: articlesEvaluated[el.documentID] ? Colors.green : Colors.yellow,
+                color: !articlesEvaluated.containsKey(el.documentID) ? Colors.transparent : articlesEvaluated.containsKey(el.documentID) && articlesEvaluated[el.documentID] ? Colors.green : Colors.yellow,
                 width: 2
               )
             ),
@@ -347,7 +347,7 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
                           message: "Trabalho Avaliado",
                           child: Icon(
                             Icons.check_circle,
-                            color: articlesEvaluated[el.documentID] ? Colors.green : Colors.transparent,
+                            color: articlesEvaluated.containsKey(el.documentID) && articlesEvaluated[el.documentID] ? Colors.green : Colors.transparent,
                             size: 30,
                           ),
                         )

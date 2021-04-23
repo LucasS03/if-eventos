@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:ifeventos/views/articles/rate/listEvaluations.dart';
 import 'package:ifeventos/widgets/button-default.dart';
 import 'package:ifeventos/widgets/custom-card.dart';
 import 'package:ifeventos/widgets/custom-dialog-box.dart';
@@ -124,6 +125,21 @@ class _AllocateArticleScreenState extends State<AllocateArticleScreen> {
                             ]
                           ),
                         ),
+
+                        ButtonDefault(
+                          title: "Ver Avaliações",
+                          color: Colors.yellow[800],
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => 
+                                ListEvaluationsScreen(eventId: widget.eventId, articleId: widget.articleId)
+                              ),
+                            );
+                          }
+                        ),
+
+                        SizedBox(height:10),
 
                         CustomCard(
                           body: Column(
