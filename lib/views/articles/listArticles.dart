@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:csv/csv.dart';
 import 'package:flutter/material.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:ifeventos/views/articles/allocate-article/allocateArticle.dart';
@@ -6,6 +9,7 @@ import 'package:ifeventos/views/articles/rate/rateArticle.dart';
 import 'package:ifeventos/views/articles/sendArticles.dart';
 import 'package:ifeventos/widgets/custom-dialog-box.dart';
 import 'package:intl/intl.dart';
+import 'package:share/share.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:core';
 
@@ -27,6 +31,72 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
   Map<String, bool> articlesEvaluated = {};
   bool _load = true;
   bool _loadArticles = false;
+  List<Map<String, dynamic>> options = [
+    { 
+      "option": "Compartilhar avaliações", 
+      "icon": Icons.share
+    }
+  ];
+
+  List data = [];
+  List<List> listOfLists = [
+    [
+      "Trabalho",
+      "Avaliador",
+      "Não compareceu",
+      "Na Introdução consta claramente a relevância do tema e os seus objetivos",
+      "Fundamentação teórico-científica",
+      "Adequação da metodologia ao tipo de trabalho",
+      "Domínio do conteúdo na apresentação",
+      "Qualidade da organização e apresentação do trabalho (recursos didáticos utilizados, slides e outros)"
+    ]
+  ];
+
+  getEvaluations() async {
+    print("Get evaluations");
+    // Puxa todos os Artigos
+    await Firestore.instance.collection("events").document(widget.eventId).collection("articles").getDocuments().then((value) async {
+      // pra cada artigo, puxa as avaliações
+      for(int i = 0; i < value.documents.length; i++) {
+        QuerySnapshot evaluations = await Firestore.instance.
+          collection("events").document(widget.eventId).
+          collection("articles").document(value.documents[i].documentID).
+          collection("evaluations").getDocuments();
+
+        // pra cada avaliação, monta a lista e adiciona à lista de listas
+        for(int j = 0; j < evaluations.documents.length; j++) {
+          List row = [];
+          DocumentSnapshot evaluator = await Firestore.instance.collection("users").document(evaluations.documents[j].data["idEvaluator"]).get();
+
+          row.add(value.documents[i].data["titulo"]);
+          row.add(evaluator.data["name"]);
+          row.add(evaluations.documents[j].data.containsKey("didNotAttend") && evaluations.documents[j].data["didNotAttend"] ? "Não compareceu" : "");
+          row.add(evaluations.documents[j].data["clarity"]);
+          row.add(evaluations.documents[j].data["reasoning"]);
+          row.add(evaluations.documents[j].data["methodologyAdequacy"]);
+          row.add(evaluations.documents[j].data["domain"]);
+          row.add(evaluations.documents[j].data["quality"]);
+          listOfLists.add(row);
+        }
+
+        // Pular linha
+        listOfLists.add([]);
+      }
+
+      String csv = const ListToCsvConverter().convert(listOfLists);
+
+      String dir = (await getExternalStorageDirectory()).absolute.path;
+      String file = "$dir" + "/avaliacoes_${eventFull.data["title"]}.csv";
+        
+      File f = new File(file);
+      f.writeAsString(csv);
+      Share.shareFiles([file], text: "Avaliações do Evento \"${eventFull.data["title"]}\"");
+
+    }).catchError((onError) {
+      print("Erro ao puxar os trabalhos");
+      // TODO: adicionar modal de erro
+    });
+  }
 
   @override
   void initState() {
@@ -92,6 +162,45 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
+        actions: [
+          Visibility(
+            visible: this.user["type"] == "GESTOR",
+            child: PopupMenuButton<Map<String, dynamic>>(
+              elevation: 3.2,
+              tooltip: 'Mais opções',
+              padding: EdgeInsets.zero,
+              itemBuilder: (BuildContext context) {
+                return options.map((Map<String, dynamic> option) {
+                  return PopupMenuItem<Map<String, dynamic>>(
+                    value: option,
+                    textStyle: TextStyle(
+                      color: Colors.black,
+                      fontWeight: FontWeight.normal
+                    ),
+                    child: InkWell(
+                      onTap: () {
+                        getEvaluations();
+                        Navigator.pop(context);
+                      },
+                      child: Row(
+                        children: [
+                          Icon(option["icon"], color: Colors.black),
+                          SizedBox(width:5),
+                          Text(
+                            option["option"], 
+                            style: TextStyle(
+                              fontSize: 16
+                            )
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }).toList();
+              },
+            ),
+          )
+        ],
       ),
 
       body: _load ?
