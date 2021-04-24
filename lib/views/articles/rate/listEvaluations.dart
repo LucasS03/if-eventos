@@ -1,6 +1,11 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:csv/csv.dart';
 import 'package:flutter/material.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:ifeventos/widgets/custom-card.dart';
+import 'package:share/share.dart';
 
 class ListEvaluationsScreen extends StatefulWidget {
 
@@ -15,7 +20,56 @@ class ListEvaluationsScreen extends StatefulWidget {
 
 class _ListEvaluationsScreenState extends State<ListEvaluationsScreen> {
 
-  // TODO: getArticle
+  List<List> listOfLists = [
+    [
+      "Avaliador",
+      "Não compareceu",
+      "Na Introdução consta claramente a relevância do tema e os seus objetivos",
+      "Fundamentação teórico-científica",
+      "Adequação da metodologia ao tipo de trabalho",
+      "Domínio do conteúdo na apresentação",
+      "Qualidade da organização e apresentação do trabalho (recursos didáticos utilizados, slides e outros)"
+    ]
+  ];
+  List data = [];
+  DocumentSnapshot articleData;
+
+  saveEvaluations() async {
+
+    data.forEach((e) async {
+      List row = [];
+      DocumentSnapshot evaluator = await Firestore.instance.collection("users").document(e.data["idEvaluator"]).get();
+      row.add(evaluator.data["name"]);
+      row.add(e.data["didNotAttend"] ? "Não compareceu" : "");
+      row.add(e.data["clarity"]);
+      row.add(e.data["reasoning"]);
+      row.add(e.data["methodologyAdequacy"]);
+      row.add(e.data["domain"]);
+      row.add(e.data["quality"]);
+      listOfLists.add(row);
+    });
+
+    String csv = const ListToCsvConverter().convert(listOfLists);
+
+    String dir = (await getExternalStorageDirectory()).absolute.path;
+    String file = "$dir" + "/avaliacao_${articleData.data["idProjeto"]}.csv";
+      
+    File f = new File(file);
+    f.writeAsString(csv);
+    Share.shareFiles([file], text: "Avaliações do Trabalho \"${articleData.data["titulo"]}\"");
+  }
+
+  getArticle() async {
+    await Firestore.instance
+      .collection("events").document(widget.eventId)
+      .collection("articles").document(widget.articleId).get().then((value) => setState(() => articleData = value));
+  }
+
+  @override
+  void initState() {
+    getArticle();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +85,9 @@ class _ListEvaluationsScreenState extends State<ListEvaluationsScreen> {
           IconButton(
             icon: Icon(Icons.download_rounded),
             tooltip: "Baixar Avaliações",
-            onPressed: () {}
+            onPressed: () {
+              saveEvaluations();
+            }
           )
         ],
       ),
@@ -71,6 +127,8 @@ class _ListEvaluationsScreenState extends State<ListEvaluationsScreen> {
                     )
                   );
                 
+                data = snapshot.data.documents;
+
                 return ListView.builder(
                   itemCount: snapshot.data.documents.length,
                   itemBuilder: (c, i) {
