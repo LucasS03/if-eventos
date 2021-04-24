@@ -40,7 +40,7 @@ class _ListEvaluationsScreenState extends State<ListEvaluationsScreen> {
       List row = [];
       DocumentSnapshot evaluator = await Firestore.instance.collection("users").document(e.data["idEvaluator"]).get();
       row.add(evaluator.data["name"]);
-      row.add(e.data["didNotAttend"] ? "Não compareceu" : "");
+      row.add(e.data.containsKey("didNotAttend") && e.data["didNotAttend"] ? "Não compareceu" : "");
       row.add(e.data["clarity"]);
       row.add(e.data["reasoning"]);
       row.add(e.data["methodologyAdequacy"]);
@@ -83,7 +83,7 @@ class _ListEvaluationsScreenState extends State<ListEvaluationsScreen> {
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.download_rounded),
+            icon: Icon(Icons.share),
             tooltip: "Baixar Avaliações",
             onPressed: () {
               saveEvaluations();
