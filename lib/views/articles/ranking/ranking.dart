@@ -1,59 +1,33 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:ifeventos/views/articles/ranking/evaluator.dart';
 import 'package:ifeventos/widgets/custom-card.dart';
 
 class RankingScreen extends StatefulWidget {
+
+  final String eventId;
+  RankingScreen({ @required this.eventId });
+
   @override
   _RankingScreenState createState() => _RankingScreenState();
 }
 
 class _RankingScreenState extends State<RankingScreen> {
 
-  List<Map<String, dynamic>> _articles = [
-    {
-      "title": "Aplicação de Técnicas de Machine Learning na Análise Automatizada do Mercado Financeiro",
-      "authors": [
-        "Alexandre Pereira da Silva"
-      ],
-      "rate": 20.0
-    },
-    {
-      "title": "Sistema de Videomonitoramento Utilizando Reconhecimento Facial",
-      "authors": [
-        "Augusto Franco Soares de Moura",
-        "Carina Teixeira de Oliveira"
-      ],
-      "rate": 30.0
-    },
-    {
-      "title": "Mancha Branca? Antes e Hoje",
-      "authors": [
-        "Antônio José Felipe Cosme"
-      ],
-      "rate": 10.0
-    },
-    {
-      "title": "Mancha Branca? Antes e Hoje",
-      "authors": [
-        "Antônio José Felipe Cosme"
-      ],
-      "rate": 5.0
-    },
-    {
-      "title": "Mancha Branca? Antes e Hoje",
-      "authors": [
-        "Antônio José Felipe Cosme"
-      ],
-      "rate": 5.0
-    },
-    {
-      "title": "Mancha Branca? Antes e Hoje",
-      "authors": [
-        "Antônio José Felipe Cosme"
-      ],
-      "rate": 5.0
-    },
-  ];
+  bool _load = true;
+  QuerySnapshot _articles;
+
+  getRanking() async {
+    setState(() => _load = true);
+    _articles = await Firestore.instance.collection("events").document(widget.eventId).collection("ranking").orderBy("evaluate", descending: true).getDocuments();
+    setState(() => _load = false);
+  }
+
+  @override
+  void initState() {
+    getRanking();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -67,23 +41,21 @@ class _RankingScreenState extends State<RankingScreen> {
         ),
       ),
 
-      body: ListView(
-        padding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
-        children: <Widget>[
-          _getRanking(
-            articles: _articles
-          )
-        ],
-      )
+      body: _load ? 
+        Center(child: CircularProgressIndicator()) : 
+        ListView(
+          padding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+          children: <Widget>[
+            _getRanking(
+              articles: _articles
+            )
+          ],
+        )
     );
   }
 
-  Widget _getRanking({ @required List<Map<String, dynamic>> articles }) {
+  Widget _getRanking({ @required QuerySnapshot articles }) {
     
-    articles.sort((Map<String, dynamic> a, Map<String, dynamic> b) {
-      return a["rate"] < b["rate"] ? 1 : 0;
-    });
-
     List<Widget> ranking = new List<Widget>();
 
     Color oneBg = Color.fromRGBO(218, 165, 32, 1);
@@ -98,14 +70,15 @@ class _RankingScreenState extends State<RankingScreen> {
     Color otherBg = Colors.grey[200];
     Color otherTxt = Colors.black87;
     
-    for(int i = 0; i < articles.length; i++) {
+    for(int i = 0; i < articles.documents.length; i++) {
       ranking.add(
         InkWell(
           onTap: () {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => EvaluatorArticleScreen(
-                project: articles[i],
+                articleId: articles.documents[i].documentID,
+                eventId: widget.eventId,
               )),
             );
           },
@@ -136,7 +109,7 @@ class _RankingScreenState extends State<RankingScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
                       Text(
-                        articles[i]["title"],
+                        articles.documents[i]["articleTitle"],
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
@@ -144,7 +117,7 @@ class _RankingScreenState extends State<RankingScreen> {
                         )
                       ),
                       Text(
-                        "${articles[i]["rate"]}",
+                        "${articles.documents[i]["evaluate"]}",
                         style: TextStyle(
                           color: Colors.green,
                           fontWeight: FontWeight.w800

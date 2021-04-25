@@ -1,126 +1,147 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:ifeventos/views/articles/ranking/rateDetail.dart';
 import 'package:ifeventos/widgets/custom-card.dart';
 
 class EvaluatorArticleScreen extends StatefulWidget {
   
-  final Map<String, dynamic> project;
-  EvaluatorArticleScreen({ @required this.project });
+  final String eventId;
+  final String articleId;
+
+  EvaluatorArticleScreen({ @required this.eventId, @required this.articleId });
 
   @override
   EvaluatorArticleScreenState createState() => EvaluatorArticleScreenState();
 }
 
 class EvaluatorArticleScreenState extends State<EvaluatorArticleScreen> {
-  Map<String, dynamic> _article = {
-    "title": "Sistema de Videomonitoramento Utilizando Reconhecimento Facial",
-    "authors": [
-      "Augusto Franco Soares de Moura",
-      "Carina Teixeira de Oliveira"
-    ],
-    "idTrab": 1234,
-    "idProj": 4321,
-  };
-
-  List evaluators = [
-    { 
-      "idEvaluation": "123"
-    },
-    { 
-      "idEvaluation": "234"
-    },
-    { 
-      "idEvaluation": "345"
-    }
-  ];
-
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color(0xffdddddd),
       appBar: AppBar(
         title: Text(
-          _article["title"],
+          "Avaliações",
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
       ),
       
-      body: ListView(
+      body: Container(
         padding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
-        children: <Widget>[
-          session(
-            color: Colors.blue,
-            textColor: Colors.white,
-            title: "Avaliadores"
-          ),
-          SizedBox(height: 5),
-
-          getListEvaluator()
-
-        ],
-      ),
-    );
-  }
-
-  Widget getListEvaluator() {
-    List<Widget> ev = new List<Widget>();
-
-    for(int i = 0; i < evaluators.length; i++) {
-      ev.add(
-        InkWell(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => DetailRateArticleScreen(
-                project: widget.project,
-                idEvaluation: evaluators[i]["idEvaluation"],
-              ))
-            );
-          },
-          child: CustomCard(
-            body: Container(
-              width: double.maxFinite,
-              child: Row(
-                children: <Widget>[
-                  CircleAvatar(
-                    backgroundColor: Colors.grey,
-                    child: Icon(Icons.person, color: Colors.grey[200]),
-                  ),
-                  SizedBox(width: 10),
-                  Text(
-                    "Avaliador ${i+1}",
-                    style: TextStyle(
-                      fontSize: 16
+        child: StreamBuilder(
+          stream: Firestore.instance
+            .collection("events").document(widget.eventId)
+            .collection("articles").document(widget.articleId)
+            .collection("evaluations").where("finished", isEqualTo: true).snapshots(),
+          builder: (context, snapshot) {
+            switch(snapshot.connectionState) {
+              case ConnectionState.none:
+              case ConnectionState.waiting:
+                return Center(
+                  child: CircularProgressIndicator()
+                );
+              default:
+                if(snapshot.data.documents.length == 0) 
+                  return Container(
+                    width: double.maxFinite,
+                    padding: EdgeInsets.symmetric(horizontal: 5, vertical: 15),
+                    margin: EdgeInsets.only(bottom: 10),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.all(Radius.circular(5)),
+                    ),
+                    child: Text(
+                      "Nenhuma avaliação foi entregue",
+                      style: Theme.of(context).textTheme.headline6.merge(
+                        TextStyle(
+                          fontSize: 16,
+                        )
+                      ),
+                      textAlign: TextAlign.center,
                     )
-                  )
-                ],
-              ),
-            ),
-          ),
-        )
-      );
-    }
+                  );
 
-    return Column(children: ev);
-  }
+                return ListView.builder(
+                  itemCount: snapshot.data.documents.length,
+                  itemBuilder: (c, i) {
+                    return CustomCard(
+                      body: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Avaliador ${i+1}",
+                            style: Theme.of(context).textTheme.headline6,
+                          ),
+                          Divider(),
 
-  Widget session({ @required String title, @required Color color, @required Color textColor }) {
-    return Container(
-      margin: EdgeInsets.only(bottom: 5),
-      padding: EdgeInsets.all(5),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.all(
-          Radius.circular(3)
-        ),
-        color: color
-      ),
-      child: Text(
-        title,
-        style: Theme.of(context).textTheme.headline5.merge(
-          TextStyle(color: textColor)
+                            Visibility(
+                              visible: !snapshot.data.documents[i].data.containsKey("didNotAttend") || !snapshot.data.documents[i].data["didNotAttend"],
+                              child: Column(
+                                children: [
+                                  item(description: "Na Introdução consta claramente a relevância do tema e os seus objetivos:", value: snapshot.data.documents[i].data["clarity"]),
+                                  SizedBox(height:15),
+                                  item(description: "Fundamentação teórico-científica:", value: snapshot.data.documents[i].data["reasoning"]),
+                                  SizedBox(height:15),
+                                  item(description: "Adequação da metodologia ao tipo de trabalho:", value: snapshot.data.documents[i].data["methodologyAdequacy"]),
+                                  SizedBox(height:15),
+                                  item(description: "Domínio do conteúdo na apresentação:", value: snapshot.data.documents[i].data["domain"]),
+                                  SizedBox(height:15),
+                                  item(description: "Qualidade da organização e apresentação do trabalho (recursos didáticos utilizados, slides e outros):", value: snapshot.data.documents[i].data["quality"]),
+                                ],
+                              )
+                            ),
+
+                            Visibility(
+                              visible: snapshot.data.documents[i].data.containsKey("didNotAttend") && snapshot.data.documents[i].data["didNotAttend"],
+                              child: CustomCard(
+                                color: Colors.yellow[100],
+                                body: Text(
+                                  "Apresentador não compareceu",
+                                  style: Theme.of(context).textTheme.headline6.merge(
+                                    TextStyle(fontSize: 16, fontWeight: FontWeight.bold)
+                                  ),
+                                  textAlign: TextAlign.center,
+                                )
+                              )
+                            ),
+                          
+                        ],
+                      ),
+                    );
+                  }
+                );
+                
+            }
+          }
         )
-      ),
+      )
     );
   }
+
+  Widget item({ @required String description, @required double value }) {
+    return Row(
+      children: <Widget>[
+        Expanded(
+          flex: 4,
+          child: Text(
+            description,
+            style: TextStyle(fontSize: 16),
+          ),
+        ),
+        Expanded(
+          flex: 1,
+          child: Container(
+            color: Colors.green,
+            child: Text(
+              value.toString(),
+              style: TextStyle(color: Colors.white, fontSize: 16),
+              textAlign: TextAlign.center,
+            )
+          ),
+        ),
+      ]
+    );
+  }
+
 }

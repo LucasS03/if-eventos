@@ -21,7 +21,7 @@ class _HomeArticlesScreenState extends State<HomeArticlesScreen> {
   void initState() {
     super.initState();
     _screens.add(ListArticlesScreen(eventId: widget.eventId));
-    _screens.add(RankingScreen());
+    _screens.add(RankingScreen(eventId: widget.eventId));
   }
 
   @override
