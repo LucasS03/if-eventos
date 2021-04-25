@@ -45,17 +45,19 @@ class _RateArticleScreenState extends State<RateArticleScreen> {
   }
 
   DocumentSnapshot article;
+  DocumentSnapshot event;
   bool _load = true;
   
-  getArticle() async {
+  getArticleAndEvent() async {
     article = await Firestore.instance.
       collection("events").document(widget.eventId).
       collection("articles").document(widget.projectId).snapshots().first;
 
-    print(article.data);
-    setState(() {
-      _load = false;
-    });
+    event = await Firestore.instance.collection("events").document(widget.eventId).get();
+
+    getEvaluation();
+
+    setState(() => _load = false);
   }
 
   getEvaluation() async {
@@ -82,12 +84,26 @@ class _RateArticleScreenState extends State<RateArticleScreen> {
         _item5changed = true;
       });
     }
+
+    if(!_finished && event != null && event.data != null) {
+      // se o evento tiver finalizado
+      if(event.data["finished"]) {
+        _finished = true;
+      } else {
+        DateTime dateEvent = DateTime.fromMillisecondsSinceEpoch(event.data["dateEnd"].seconds * 1000);
+        DateTime dateNow = new DateTime.now();
+
+        if(dateEvent.isBefore(dateNow))
+          _finished = true;
+
+      }
+    }
   }
 
   @override
   void initState() {
-    getArticle();
-    getEvaluation();
+    getArticleAndEvent();
+    // getEvaluation();
 
     super.initState();
   }
@@ -151,7 +167,7 @@ class _RateArticleScreenState extends State<RateArticleScreen> {
               CustomCard(
                 color: Colors.green[100],
                 body: Text(
-                  "Trabalho já avaliado e entregue. Não pode mais ser editado.",
+                  "O trabalho já foi avaliado e entregue ou o evento já finalizou, portanto não pode mais ser editado.",
                   style: Theme.of(context).textTheme.headline6.merge(
                     TextStyle(fontSize: 16, fontWeight: FontWeight.bold)
                   ),
@@ -587,7 +603,7 @@ class _RateArticleScreenState extends State<RateArticleScreen> {
                       )
                     ],
                   ),
-                  onPressed: 
+                  onPressed: _finished ? null :
                   _didNotAttend || (_item1changed && _item2changed && _item3changed && _item4changed && _item5changed) ? 
                   () {
                     Map<String, dynamic> eval = {

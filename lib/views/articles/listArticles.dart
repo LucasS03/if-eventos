@@ -8,6 +8,7 @@ import 'package:ifeventos/views/articles/allocate-article/allocateArticle.dart';
 import 'package:ifeventos/views/articles/rate/rateArticle.dart';
 import 'package:ifeventos/views/articles/sendArticles.dart';
 import 'package:ifeventos/widgets/button-default.dart';
+import 'package:ifeventos/widgets/custom-card.dart';
 import 'package:ifeventos/widgets/custom-dialog-box.dart';
 import 'package:intl/intl.dart';
 import 'package:share/share.dart';
@@ -32,6 +33,7 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
   Map<String, bool> articlesEvaluated = {};
   bool _load = true;
   bool _loadArticles = false;
+  bool _eventFinished = false;
 
   List data = [];
   List<List> listOfLists = [
@@ -118,9 +120,12 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
     if(this.user["type"] == "AVALIADOR")
       await getArticlesByEvaluator();
 
-    setState(() {
-      _load = false;
-    });
+    DateTime dateEvent = DateTime.fromMillisecondsSinceEpoch(eventFull.data["dateEnd"].seconds * 1000);
+    DateTime dateNow = new DateTime.now();
+    if(dateEvent.isBefore(dateNow))
+      setState(() => _eventFinished = true);
+    
+    setState(() => _load = false);
   }
 
   getArticlesByEvaluator() async {
@@ -130,7 +135,10 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
       collection("events").document(widget.eventId).
       collection("evaluators").document(userId).get();
     
-    List list = evaluator.data["articleIds"];
+    List list = [];
+    
+    if(evaluator != null && evaluator.data != null && evaluator.data.containsKey("articleIds")) 
+      list = evaluator.data["articleIds"];
 
     list.forEach((el) async {
       DocumentSnapshot article = await Firestore.instance.
@@ -143,7 +151,7 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
     
       setState(() {
         articlesFull.add(article);
-        articlesEvaluated[el] = evaluation.data != null ? true : false;
+        articlesEvaluated[el] = evaluation != null && evaluation.data != null && evaluation.data["finished"] != null ? true : false;
       });
     });
 
@@ -315,6 +323,25 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
             ),
           ),
 
+          Visibility(
+            visible: _eventFinished || eventFull.data["finished"],
+            child: CustomCard(
+              body: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 5),
+                child: Text(
+                  "O evento já foi finalizado",
+                  style: Theme.of(context).textTheme.headline6.merge(
+                    TextStyle(fontSize: 16, fontWeight: FontWeight.bold)
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              color: Colors.yellow[100],
+            ),
+          ),
+
+          Divider(),
+
           // Lista artigos
           _loadArticles ? 
             Center(
@@ -347,15 +374,18 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
                           builder: (context, snapshot) {
                             switch(snapshot.connectionState) {
                               default:
-                                return Text(
-                                  this.user["type"] == "GESTOR" ?
-                                  "Você ainda não adicionou nenhum trabalho" : 
-                                  snapshot.data ? "Nenhum trabalho atribuído à você" :
-                                  "Você não é um avaliador deste evento",
-                                  style: TextStyle(
-                                    fontSize: 16,
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: 10.0),
+                                  child: Text(
+                                    this.user["type"] == "GESTOR" ?
+                                    "Você ainda não adicionou nenhum trabalho" : 
+                                    snapshot.data ? "Nenhum trabalho atribuído à você" :
+                                    "Você não é um avaliador deste evento",
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                    ),
+                                    textAlign: TextAlign.center,
                                   ),
-                                  textAlign: TextAlign.center,
                                 );
                             }
                           }
@@ -369,9 +399,12 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
               }
             ) : 
             articlesFull.length == 0  ? 
-              Text("Nenhum trabalho atribuído à você",
-                style: TextStyle(fontSize: 16),
-                textAlign: TextAlign.center,
+              Padding(
+                padding: const EdgeInsets.only(bottom: 10.0),
+                child: Text("Nenhum trabalho atribuído à você",
+                  style: TextStyle(fontSize: 16),
+                  textAlign: TextAlign.center,
+                ),
               ) :
               Container(
                 child: generateListArticlesTest( e: articlesFull )
@@ -383,7 +416,7 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
             height: 50,
             width: double.maxFinite,
             child: RaisedButton(
-              onPressed: articlesEvaluated.values.any((e) => !e) ? null : () async {
+              onPressed: articlesEvaluated.values.any((e) => e) || articlesFull.length == 0 || _eventFinished ? null : () async {
                 
                 try {
                   DocumentSnapshot evaluatorData = await Firestore.instance.
