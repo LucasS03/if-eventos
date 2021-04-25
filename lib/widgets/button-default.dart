@@ -5,8 +5,19 @@ class ButtonDefault extends StatelessWidget {
   final String title;
   final GestureTapCallback onTap;
   final Color color;
+  final TextStyle textStyle;
 
-  ButtonDefault({ @required this.title, @required this.onTap, this.color: Colors.green });
+  ButtonDefault({ 
+    @required this.title,
+    @required this.onTap,
+    this.color: Colors.green,
+    this.textStyle: const TextStyle(
+      fontFamily: 'Nunito',
+      fontSize: 18,
+      fontWeight: FontWeight.w600,
+      color: Colors.white
+    )
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -18,12 +29,7 @@ class ButtonDefault extends StatelessWidget {
         color: color,
         child: Text(
           title,
-          style: TextStyle(
-            fontFamily: 'Nunito',
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            color: Colors.white
-          ),
+          style: textStyle
         ),
       ),
     );

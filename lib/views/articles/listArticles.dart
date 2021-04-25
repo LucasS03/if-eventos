@@ -7,6 +7,7 @@ import 'package:get_storage/get_storage.dart';
 import 'package:ifeventos/views/articles/allocate-article/allocateArticle.dart';
 import 'package:ifeventos/views/articles/rate/rateArticle.dart';
 import 'package:ifeventos/views/articles/sendArticles.dart';
+import 'package:ifeventos/widgets/button-default.dart';
 import 'package:ifeventos/widgets/custom-dialog-box.dart';
 import 'package:intl/intl.dart';
 import 'package:share/share.dart';
@@ -31,12 +32,6 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
   Map<String, bool> articlesEvaluated = {};
   bool _load = true;
   bool _loadArticles = false;
-  List<Map<String, dynamic>> options = [
-    { 
-      "option": "Compartilhar avaliações", 
-      "icon": Icons.share
-    }
-  ];
 
   List data = [];
   List<List> listOfLists = [
@@ -158,47 +153,48 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
       backgroundColor: Color(0xffdddddd),
       appBar: AppBar(
         title: Text(
-          _load ? '...' : eventFull.data["title"],
+          // _load ? '...' : eventFull.data["title"],
+          "Evento",
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
         actions: [
           Visibility(
             visible: this.user["type"] == "GESTOR",
-            child: PopupMenuButton<Map<String, dynamic>>(
-              elevation: 3.2,
-              tooltip: 'Mais opções',
-              padding: EdgeInsets.zero,
-              itemBuilder: (BuildContext context) {
-                return options.map((Map<String, dynamic> option) {
-                  return PopupMenuItem<Map<String, dynamic>>(
-                    value: option,
-                    textStyle: TextStyle(
-                      color: Colors.black,
-                      fontWeight: FontWeight.normal
-                    ),
-                    child: InkWell(
-                      onTap: () {
-                        getEvaluations();
-                        Navigator.pop(context);
-                      },
-                      child: Row(
-                        children: [
-                          Icon(option["icon"], color: Colors.black),
-                          SizedBox(width:5),
-                          Text(
-                            option["option"], 
-                            style: TextStyle(
-                              fontSize: 16
-                            )
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                }).toList();
+            child: IconButton(
+              icon: Icon(Icons.edit),
+              tooltip: "Editar evento",
+              onPressed: () {
+                // Ir pra tela de editar evento
+                // Navigator.push(
+                //   context,
+                //   MaterialPageRoute(builder: (context) => SendArticlesScreen(eventId: widget.eventId)),
+                // );
               },
-            ),
+            )
+          ),
+          Visibility(
+            visible: this.user["type"] == "GESTOR",
+            child: IconButton(
+              icon: Icon(Icons.note_add),
+              tooltip: "Adicionar trabalhos",
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => SendArticlesScreen(eventId: widget.eventId)),
+                );
+              },
+            )
+          ),
+          Visibility(
+            visible: this.user["type"] == "GESTOR",
+            child: IconButton(
+              icon: Icon(Icons.share),
+              tooltip: "Compartilhar avaliações",
+              onPressed: () {
+                getEvaluations();
+              },
+            )
           )
         ],
       ),
@@ -213,6 +209,28 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
         ListView(
         padding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
         children: <Widget>[
+          Visibility(
+            visible: this.user["type"] == "GESTOR",
+            child: Column(
+              children: [
+                ButtonDefault(
+                  title: "Finalizar Evento",
+                  color: Colors.yellow[100],
+                  textStyle: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.yellow[800]
+                  ),
+                  onTap: () async { 
+                    await Firestore.instance.collection("events").document(widget.eventId).updateData({ "finished": true });
+                    generateRanking();
+                  },
+                ),
+                SizedBox(height: 10),
+              ],
+            ),
+          ),
+
           Container(
             width: double.maxFinite,
             padding: EdgeInsets.all(5),
@@ -224,36 +242,13 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                Visibility(
-                  visible: this.user["type"] == "GESTOR",
-                  child: Column(
-                    children: [
-                      SizedBox(
-                        height: 50,
-                        width: double.maxFinite,
-                        child: RaisedButton(
-                          onPressed: () { 
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => SendArticlesScreen(eventId: widget.eventId)),
-                            );
-                          },
-                          color: Colors.green,
-                          child: Text(
-                            "Adicionar Trabalhos",
-                            style: TextStyle(
-                              fontFamily: 'Nunito',
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white
-                            ),
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: 10),
-                    ],
+                Text(
+                  eventFull.data["title"],
+                  style: Theme.of(context).textTheme.headline6.merge(
+                    TextStyle(fontWeight: FontWeight.bold)
                   ),
                 ),
+                Divider(),
                 eventFull.data["site"] != "" ?
                 Text(
                   "Site do evento:",
@@ -407,6 +402,56 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
         ],
       )
     );
+  }
+
+  generateRanking() async {
+    List<Map<String, dynamic>> ranking = [];
+
+    // buscar artigos
+    QuerySnapshot articles = await Firestore.instance.collection("events").document(widget.eventId).collection("articles").getDocuments();
+    
+    // pra cada artigo buscar avaliacoes
+    for(int i = 0; i < articles.documents.length; i++) {
+      QuerySnapshot evaluations = await Firestore.instance.
+        collection("events").document(eventFull.documentID).
+        collection("articles").document(articles.documents[i].documentID).
+        collection("evaluations").getDocuments();
+
+      double sum = 0.0;
+
+      for(int j = 0; j < evaluations.documents.length; j++) {
+        // calcula soma das avaliações
+        sum += evaluations.documents[j].data["clarity"];
+        sum += evaluations.documents[j].data["reasoning"];
+        sum += evaluations.documents[j].data["methodologyAdequacy"];
+        sum += evaluations.documents[j].data["domain"];
+        sum += evaluations.documents[j].data["quality"];
+      }
+
+      if(sum > 0) {
+        sum = sum / evaluations.documents.length;
+        sum = num.parse(sum.toStringAsFixed(1));
+      } else {
+        sum = 0.0;
+      }
+
+      // adiciona à lista
+      ranking.add({
+        "articleId": articles.documents[i].documentID,
+        "articleTitle": articles.documents[i].data["titulo"],
+        "evaluate": sum,
+      });
+    }
+
+    // ordena lista
+    ranking.sort((Map<String, dynamic> a, Map<String, dynamic> b) {
+      return a["evaluate"] < b["evaluate"] ? 1 : 0;
+    });
+
+    // salva um por um no /events/:id/ranking
+    ranking.forEach((e) {
+      Firestore.instance.collection("events").document(widget.eventId).collection("ranking").document(e["articleId"]).setData(e);
+    });
   }
 
   Widget generateListArticlesTest({ @required List e }) {
