@@ -32,6 +32,7 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
   Map<String, bool> articlesEvaluated = {};
   bool _load = true;
   bool _loadArticles = false;
+  bool _endingEvent = false;
 
   List data = [];
   List<List> listOfLists = [
@@ -48,7 +49,7 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
   ];
 
   getEvaluations() async {
-    print("Get evaluations");
+    
     // Puxa todos os Artigos
     await Firestore.instance.collection("events").document(widget.eventId).collection("articles").getDocuments().then((value) async {
       // pra cada artigo, puxa as avaliações
@@ -85,11 +86,24 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
         
       File f = new File(file);
       f.writeAsString(csv);
+
+      Navigator.pop(context);
       Share.shareFiles([file], text: "Avaliações do Evento \"${eventFull.data["title"]}\"");
 
     }).catchError((onError) {
-      print("Erro ao puxar os trabalhos");
-      // TODO: adicionar modal de erro
+      Navigator.pop(context);
+      showDialog(context: context,
+        builder: (BuildContext context){
+          return CustomDialogBox(
+            title: "Ops...",
+            descriptions: "Desculpe! Tivemos um erro ao gerar o seu arquivo de avaliações. Caso o erro persista, contate o mantenedor do sistema.",
+            text: "Ok",
+            icon: Icons.pan_tool,
+            iconColor: Colors.white,
+            color: Colors.redAccent
+          );
+        }
+      );
     });
   }
 
@@ -159,6 +173,7 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
           overflow: TextOverflow.ellipsis,
         ),
         actions: [
+          // Editar evento
           Visibility(
             visible: this.user["type"] == "GESTOR",
             child: IconButton(
@@ -173,6 +188,8 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
               },
             )
           ),
+          
+          // Adicionar trabalhos
           Visibility(
             visible: this.user["type"] == "GESTOR",
             child: IconButton(
@@ -186,6 +203,8 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
               },
             )
           ),
+          
+          // Compartilhar avaliações
           Visibility(
             visible: this.user["type"] == "GESTOR",
             child: IconButton(
@@ -193,6 +212,13 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
               tooltip: "Compartilhar avaliações",
               onPressed: () {
                 getEvaluations();
+                showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (BuildContext context){
+                    return Center(child: CircularProgressIndicator());
+                  }
+                );
               },
             )
           )
@@ -206,9 +232,12 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
             child: CircularProgressIndicator()
           ),
         ) :
+
         ListView(
         padding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
         children: <Widget>[
+
+          // Botão de finalizar evento
           Visibility(
             visible: this.user["type"] == "GESTOR",
             child: Column(
@@ -224,6 +253,13 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
                   onTap: () async { 
                     await Firestore.instance.collection("events").document(widget.eventId).updateData({ "finished": true });
                     generateRanking();
+                    showDialog(
+                      context: context,
+                      barrierDismissible: false,
+                      builder: (BuildContext context){
+                        return Center(child: CircularProgressIndicator());
+                      }
+                    );
                   },
                 ),
                 SizedBox(height: 10),
@@ -231,6 +267,7 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
             ),
           ),
 
+          // Informações do evento
           Container(
             width: double.maxFinite,
             padding: EdgeInsets.all(5),
@@ -279,10 +316,12 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
             ),
           ),
 
+          // Lista artigos
           _loadArticles ? 
             Center(
               child: CircularProgressIndicator()
             ) :
+
             this.user["type"] == "GESTOR" ? 
             StreamBuilder(
               stream: Firestore.instance.collection("events").document(widget.eventId).collection("articles").snapshots(),
@@ -339,6 +378,7 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
                 child: generateListArticlesTest( e: articlesFull )
               ),
 
+          // Botão de entregar avaliações
           this.user["type"] == "AVALIADOR" ? 
           SizedBox(
             height: 50,
@@ -452,6 +492,8 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
     ranking.forEach((e) {
       Firestore.instance.collection("events").document(widget.eventId).collection("ranking").document(e["articleId"]).setData(e);
     });
+
+    Navigator.pop(context);
   }
 
   Widget generateListArticlesTest({ @required List e }) {
