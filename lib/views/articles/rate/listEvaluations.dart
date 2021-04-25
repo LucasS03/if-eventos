@@ -56,6 +56,7 @@ class _ListEvaluationsScreenState extends State<ListEvaluationsScreen> {
       
     File f = new File(file);
     f.writeAsString(csv);
+    Navigator.pop(context);
     Share.shareFiles([file], text: "Avaliações do Trabalho \"${articleData.data["titulo"]}\"");
   }
 
@@ -87,6 +88,13 @@ class _ListEvaluationsScreenState extends State<ListEvaluationsScreen> {
             tooltip: "Baixar Avaliações",
             onPressed: () {
               saveEvaluations();
+              showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (BuildContext context){
+                  return Center(child: CircularProgressIndicator());
+                }
+              );
             }
           )
         ],

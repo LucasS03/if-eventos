@@ -5,8 +5,6 @@ import 'package:get_storage/get_storage.dart';
 import 'package:ifeventos/widgets/custom-dialog-box.dart';
 import 'package:intl/intl.dart';
 import 'package:ifeventos/widgets/custom-card.dart';
-import 'package:ifeventos/widgets/custom-dialog.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class RateArticleScreen extends StatefulWidget {
 

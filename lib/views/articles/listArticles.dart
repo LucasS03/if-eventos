@@ -32,7 +32,6 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
   Map<String, bool> articlesEvaluated = {};
   bool _load = true;
   bool _loadArticles = false;
-  bool _endingEvent = false;
 
   List data = [];
   List<List> listOfLists = [
@@ -592,9 +591,6 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
   }
 
   Widget getAuthorsTest({ @required String name }) {
-
-    int apresentadores = 0;
-    String a = "";
     
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

@@ -35,20 +35,10 @@ class _AllocateArticleScreenState extends State<AllocateArticleScreen> {
             "name": user.data["name"],
             "articlesToEvaluate": element.data["articleIds"].length
           };
-          print(u);
           setState(() => _evaluators.add(u));
         });
       });
-    // TODO: mostrando só alguns dos avaliadores salvos.... ????????????????????????/
-    // TODO: adicionar quantos artigos o avaliador já tem para avaliar
-    print(_evaluators);
-    // _evaluators.forEach((element) async {
-    //   DocumentSnapshot evaluator = await Firestore.instance.collection("events").document(widget.eventId)
-    //   .collection("evaluators").document(element.documentID).get();
-    //   element.data["articlesToEvaluate"] = evaluator.data["articleIds"].length;
-    //   print(element.data);
-    // });
-
+    
     // Busca avaliadores deste trabalho
     await Firestore.instance
       .collection("events").document(widget.eventId)
@@ -56,13 +46,11 @@ class _AllocateArticleScreenState extends State<AllocateArticleScreen> {
         evaluatorsThisArticle.documents.forEach((element) async {
           int index = _evaluators.indexWhere((u) => u["documentID"] == element.data["userId"]);
           if(index >= 0) {
-            print("?? -> ${_evaluators[index]} ${_evaluators[index].runtimeType}");
             setState(() => _selectedEvaluators.add(_evaluators[index]));
           }
         });
       });
 
-//  (${e.data["articlesToEvaluate"]})
     _selectedEvaluatorsInit.addAll(_evaluators);
 
     setState(() => loadEvaluators = false);

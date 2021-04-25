@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:ifeventos/views/articles/rate/rateArticle.dart';
 import 'package:ifeventos/widgets/custom-card.dart';
 import 'package:url_launcher/url_launcher.dart';
 
