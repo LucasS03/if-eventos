@@ -119,6 +119,10 @@ class _NewEventHourScreenState extends State<NewEventHourScreen> {
                       // widget.newEvent["hourEnd"] = TimeOfDay(hour: int.parse(_endTimeController.text.split(':')[0]), minute: int.parse(_endTimeController.text.split(':')[1]));
                       widget.newEvent["hourBegin"] = _startTimeController.text;
                       widget.newEvent["hourEnd"] = _endTimeController.text;
+
+                      widget.newEvent["dateBegin"] = DateTime.utc(widget.newEvent["dateBegin"].year, widget.newEvent["dateBegin"].month, widget.newEvent["dateBegin"].day, int.parse(_startTimeController.text.split(":")[0]), int.parse(_startTimeController.text.split(":")[1]), 0).add(Duration(hours: 3));
+                      widget.newEvent["dateEnd"] = DateTime.utc(widget.newEvent["dateEnd"].year, widget.newEvent["dateEnd"].month, widget.newEvent["dateEnd"].day, int.parse(_endTimeController.text.split(":")[0]), int.parse(_endTimeController.text.split(":")[1]), 59).add(Duration(hours: 3));
+                      
                       Navigator.push(
                         context,
                         MaterialPageRoute(builder: (context) => NewEventLocalScreen(newEvent: widget.newEvent)),

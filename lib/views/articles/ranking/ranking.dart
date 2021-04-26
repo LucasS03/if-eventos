@@ -46,9 +46,22 @@ class _RankingScreenState extends State<RankingScreen> {
         ListView(
           padding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
           children: <Widget>[
+            _articles.documents.length > 0 ?
             _getRanking(
               articles: _articles
-            )
+            ) : CustomCard(
+              body: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 5),
+                child: Text(
+                  "O evento ainda não foi finalizado!\nO ranking será gerado após a finalização do evento.",
+                  style: Theme.of(context).textTheme.headline6.merge(
+                    TextStyle(fontSize: 16, fontWeight: FontWeight.bold)
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              color: Colors.yellow[100],
+            ),
           ],
         )
     );

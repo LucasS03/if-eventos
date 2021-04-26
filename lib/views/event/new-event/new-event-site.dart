@@ -73,7 +73,7 @@ class _NewEventSiteScreenState extends State<NewEventSiteScreen> {
                                 color: Colors.grey[600]
                               ),
                               prefixIcon: Icon(
-                                Icons.title, 
+                                Icons.public, 
                                 color: Colors.grey[600]
                               ),
                             ),

@@ -69,7 +69,7 @@ class _RateArticleScreenState extends State<RateArticleScreen> {
     if(eval.data != null) {
       setState(() {
         _radioValue = eval.data["modality"];
-        _date = DateTime.fromMillisecondsSinceEpoch(eval.data["date"].seconds * 1000);
+        _date = DateTime.fromMillisecondsSinceEpoch((eval.data["date"].seconds - (60*60*3)) * 1000);
         _item1 = eval.data["clarity"];
         _item2 = eval.data["reasoning"];
         _item3 = eval.data["methodologyAdequacy"];
@@ -90,7 +90,7 @@ class _RateArticleScreenState extends State<RateArticleScreen> {
       if(event.data["finished"]) {
         _finished = true;
       } else {
-        DateTime dateEvent = DateTime.fromMillisecondsSinceEpoch(event.data["dateEnd"].seconds * 1000);
+        DateTime dateEvent = DateTime.fromMillisecondsSinceEpoch((event.data["dateEnd"].seconds - (60*60*3)) * 1000);
         DateTime dateNow = new DateTime.now();
 
         if(dateEvent.isBefore(dateNow))
@@ -632,6 +632,7 @@ class _RateArticleScreenState extends State<RateArticleScreen> {
                               iconColor: Colors.white,
                               color: Colors.greenAccent,
                               skipScreen: true,
+                              returnData: true,
                             );
                           }
                         );

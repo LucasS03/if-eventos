@@ -18,7 +18,8 @@ class _NewEventTitleScreenState extends State<NewEventTitleScreen> {
     "dateEnd": "",
     "hourBegin": "",
     "hourEnd": "",
-    "local": ""
+    "local": "",
+    "finished": false
   };
 
   @override

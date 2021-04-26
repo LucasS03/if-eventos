@@ -18,6 +18,7 @@ class _NewEventFinishScreenState extends State<NewEventFinishScreen> {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
+        automaticallyImplyLeading: false,
       ),
 
       body: Container(

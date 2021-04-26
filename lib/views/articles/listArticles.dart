@@ -7,6 +7,7 @@ import 'package:get_storage/get_storage.dart';
 import 'package:ifeventos/views/articles/allocate-article/allocateArticle.dart';
 import 'package:ifeventos/views/articles/rate/rateArticle.dart';
 import 'package:ifeventos/views/articles/sendArticles.dart';
+import 'package:ifeventos/views/event/edit-event/editEvent.dart';
 import 'package:ifeventos/widgets/button-default.dart';
 import 'package:ifeventos/widgets/custom-card.dart';
 import 'package:ifeventos/widgets/custom-dialog-box.dart';
@@ -116,11 +117,12 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
   }
 
   getEvent() async {
+    setState(() => _load = true);
     eventFull = await Firestore.instance.collection("events").document(widget.eventId).snapshots().first;
     if(this.user["type"] == "AVALIADOR")
       await getArticlesByEvaluator();
 
-    DateTime dateEvent = DateTime.fromMillisecondsSinceEpoch(eventFull.data["dateEnd"].seconds * 1000);
+    DateTime dateEvent = DateTime.fromMillisecondsSinceEpoch((eventFull.data["dateEnd"].seconds  - (60*60*3)) * 1000);
     DateTime dateNow = new DateTime.now();
     if(dateEvent.isBefore(dateNow))
       setState(() => _eventFinished = true);
@@ -164,7 +166,7 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
   }
 
   timestampToDateTimeFormated(seconds) {
-    DateTime date = DateTime.fromMillisecondsSinceEpoch(seconds * 1000);
+    DateTime date = DateTime.fromMillisecondsSinceEpoch((seconds - (60*60*3)) * 1000);
     return DateFormat('dd/MM/yyyy').format(date);
   }
 
@@ -186,12 +188,14 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
             child: IconButton(
               icon: Icon(Icons.edit),
               tooltip: "Editar evento",
-              onPressed: () {
-                // Ir pra tela de editar evento
-                // Navigator.push(
-                //   context,
-                //   MaterialPageRoute(builder: (context) => SendArticlesScreen(eventId: widget.eventId)),
-                // );
+              onPressed: () async {
+                bool updateEvent = await Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => EditEventScreen(eventId: widget.eventId)),
+                );
+
+                if(updateEvent != null && updateEvent)
+                  getEvent();
               },
             )
           ),
@@ -324,7 +328,7 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
           ),
 
           Visibility(
-            visible: _eventFinished || eventFull.data["finished"],
+            visible: _eventFinished || (eventFull.data.containsKey("finished") && eventFull.data["finished"]),
             child: CustomCard(
               body: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 5),
@@ -374,18 +378,16 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
                           builder: (context, snapshot) {
                             switch(snapshot.connectionState) {
                               default:
-                                return Padding(
-                                  padding: const EdgeInsets.only(bottom: 10.0),
-                                  child: Text(
-                                    this.user["type"] == "GESTOR" ?
-                                    "Você ainda não adicionou nenhum trabalho" : 
-                                    snapshot.data ? "Nenhum trabalho atribuído à você" :
-                                    "Você não é um avaliador deste evento",
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                    ),
-                                    textAlign: TextAlign.center,
+                                return Text(
+                                  this.user["type"] == "GESTOR" ?
+                                  "Você ainda não adicionou nenhum trabalho" : 
+                                  snapshot.data ? "Nenhum trabalho atribuído à você" :
+                                  "Você não é um avaliador deste evento",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold
                                   ),
+                                  textAlign: TextAlign.center,
                                 );
                             }
                           }
@@ -534,8 +536,8 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
     e.forEach((el) {
       articles.add(
         InkWell(
-          onTap: () {
-            Navigator.push(
+          onTap: () async {
+            bool updateList = await Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => 
                 this.user["type"] == "AVALIADOR" ? 
@@ -543,6 +545,12 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
                   AllocateArticleScreen(eventId: eventFull.documentID, articleId: el.documentID)
               ),
             );
+
+            if(updateList != null && updateList) {
+              setState(() => _loadArticles = true);
+              await Future.delayed(const Duration(seconds: 1));
+              setState(() => _loadArticles = false);
+            }
           },
           child: Container(
             width: double.maxFinite,

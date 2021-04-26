@@ -7,6 +7,7 @@ class CustomDialogBox extends StatefulWidget {
   final IconData icon;
   final Color color, iconColor;
   final bool skipScreen;
+  final dynamic returnData;
 
   const CustomDialogBox({
     Key key,
@@ -16,7 +17,8 @@ class CustomDialogBox extends StatefulWidget {
     this.icon, 
     this.iconColor,
     this.color,
-    this.skipScreen: false
+    this.skipScreen: false,
+    this.returnData
   }) : super(key: key);
 
   @override
@@ -69,7 +71,7 @@ class _CustomDialogBoxState extends State<CustomDialogBox> {
                     Navigator.of(context).pop();
                     
                     if(widget.skipScreen) 
-                        Navigator.of(context).pop();
+                        Navigator.of(context).pop(widget.returnData);
                   },
                   child: Text(widget.text,style: TextStyle(fontSize: 18),)
                 ),

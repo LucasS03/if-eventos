@@ -90,7 +90,7 @@ class _EventScreenState extends State<EventScreen> {
   }
 
   timestampToDateTimeFormated(seconds) {
-    DateTime date = DateTime.fromMillisecondsSinceEpoch(seconds * 1000);
+    DateTime date = DateTime.fromMillisecondsSinceEpoch((seconds - (60*60*3)) * 1000);
     return DateFormat('dd/MM/yyyy').format(date);
   }
 
@@ -98,7 +98,7 @@ class _EventScreenState extends State<EventScreen> {
     List<Widget> events = new List<Widget>();
 
     e.forEach((el) {
-      DateTime dateEvent = DateTime.fromMillisecondsSinceEpoch(el.data["dateEnd"].seconds * 1000);
+      DateTime dateEvent = DateTime.fromMillisecondsSinceEpoch((el.data["dateEnd"].seconds - (60*60*3)) * 1000);
       DateTime dateNow = new DateTime.now();
 
       if(isAfter ? dateEvent.isAfter(dateNow) : dateEvent.isBefore(dateNow)) {

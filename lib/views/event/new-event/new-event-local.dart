@@ -123,6 +123,7 @@ class _NewEventLocalScreenState extends State<NewEventLocalScreen> {
                     onPressed: () {
                       widget.newEvent["local"] = _localController.text;
                       widget.newEvent["campus"] = _campusEvent;
+                      widget.newEvent["finished"] = false;
                       
                       Firestore.instance.collection("events")
                         .add(widget.newEvent).then((value) => {
