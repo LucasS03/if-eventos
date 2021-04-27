@@ -74,6 +74,21 @@ class _AllocateArticleScreenState extends State<AllocateArticleScreen> {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
+        actions: [
+          IconButton(
+              icon: Icon(Icons.edit),
+              tooltip: "Editar artigo",
+              onPressed: () async {
+                // bool updateEvent = await Navigator.push(
+                //   context,
+                //   MaterialPageRoute(builder: (context) => EditEventScreen(eventId: widget.eventId)),
+                // );
+
+                // if(updateEvent != null && updateEvent)
+                //   getEvent();
+              },
+            )
+          ]
       ),
 
       body:   Container(

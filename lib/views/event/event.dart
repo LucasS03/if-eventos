@@ -200,6 +200,7 @@ class _EventScreenState extends State<EventScreen> {
                                         .collection("events_attended").add({
                                           "eventId": el.documentID
                                         });
+                                      setState(() {});
                                       
                                       showDialog(context: context,
                                         builder: (BuildContext context){
