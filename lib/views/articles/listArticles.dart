@@ -32,6 +32,7 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
   DocumentSnapshot eventFull;
   List<DocumentSnapshot> articlesFull = new List<DocumentSnapshot>();
   Map<String, bool> articlesEvaluated = {};
+  Map<String, bool> articlesEvaluatedFinished = {};
   bool _load = true;
   bool _loadArticles = false;
   bool _eventFinished = false;
@@ -132,6 +133,9 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
 
   getArticlesByEvaluator() async {
     setState(() => _loadArticles = true);
+    articlesFull = new List<DocumentSnapshot>();
+    articlesEvaluated = {};
+    articlesEvaluatedFinished = {};
 
     final evaluator = await Firestore.instance.
       collection("events").document(widget.eventId).
@@ -153,7 +157,13 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
     
       setState(() {
         articlesFull.add(article);
-        articlesEvaluated[el] = evaluation != null && evaluation.data != null && evaluation.data["finished"] != null ? true : false;
+        if(evaluation != null) {
+          articlesEvaluated[el] = evaluation.data != null && evaluation.data["finished"] != null ? true : false;
+          articlesEvaluatedFinished[el] = evaluation.data != null && evaluation.data.containsKey("finished") ? evaluation.data["finished"] : false;
+        } else {
+          articlesEvaluated[el] = false;
+          articlesEvaluatedFinished[el] = false;
+        }
       });
     });
 
@@ -168,6 +178,20 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
   timestampToDateTimeFormated(seconds) {
     DateTime date = DateTime.fromMillisecondsSinceEpoch((seconds - (60*60*3)) * 1000);
     return DateFormat('dd/MM/yyyy').format(date);
+  }
+
+  bool disableSendEvaluations() {
+    if(articlesFull.length == 0 || _eventFinished ) {
+      return true;
+    }
+
+    if(!articlesEvaluated.values.any((e) => !e)) {
+      if(!articlesEvaluatedFinished.values.any((e) => !e)) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   @override
@@ -418,7 +442,7 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
             height: 50,
             width: double.maxFinite,
             child: RaisedButton(
-              onPressed: articlesEvaluated.values.any((e) => !e) || articlesFull.length == 0 || _eventFinished ? null : () async {
+              onPressed: disableSendEvaluations() ? null : () async {
                 
                 try {
                   DocumentSnapshot evaluatorData = await Firestore.instance.
@@ -432,6 +456,9 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
                       collection("articles").document(article).
                       collection("evaluations").document(userId).updateData({ "finished": true });
                   });
+
+                  if(this.user["type"] == "AVALIADOR")
+                    getArticlesByEvaluator();
 
                   showDialog(context: context,
                     builder: (BuildContext context){
@@ -547,9 +574,8 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
             );
 
             if(updateList != null && updateList) {
-              setState(() => _loadArticles = true);
-              await Future.delayed(const Duration(seconds: 1));
-              setState(() => _loadArticles = false);
+              if(this.user["type"] == "AVALIADOR")
+                await getArticlesByEvaluator();
             }
           },
           child: Container(
