@@ -418,7 +418,7 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
             height: 50,
             width: double.maxFinite,
             child: RaisedButton(
-              onPressed: articlesEvaluated.values.any((e) => e) || articlesFull.length == 0 || _eventFinished ? null : () async {
+              onPressed: articlesEvaluated.values.any((e) => !e) || articlesFull.length == 0 || _eventFinished ? null : () async {
                 
                 try {
                   DocumentSnapshot evaluatorData = await Firestore.instance.

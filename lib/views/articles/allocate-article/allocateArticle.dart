@@ -24,6 +24,8 @@ class _AllocateArticleScreenState extends State<AllocateArticleScreen> {
   bool loadEvaluators = true;
 
   getEvaluators() async {
+    setState(() => loadEvaluators = true);
+
     // Busca avaliadores deste evento
     await Firestore.instance
       .collection("events").document(widget.eventId)
@@ -33,7 +35,7 @@ class _AllocateArticleScreenState extends State<AllocateArticleScreen> {
           Map<String, dynamic> u = {
             "documentID": user.documentID,
             "name": user.data["name"],
-            "articlesToEvaluate": element.data["articleIds"].length
+            "articlesToEvaluate": element.data.containsKey("articleIds") ? element.data["articleIds"].length : 0
           };
           setState(() => _evaluators.add(u));
         });
@@ -76,7 +78,11 @@ class _AllocateArticleScreenState extends State<AllocateArticleScreen> {
 
       body:   Container(
         padding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
-        child: StreamBuilder(
+        child: loadEvaluators ?
+        Center(
+          child: CircularProgressIndicator()
+        ) :
+        StreamBuilder(
           stream: Firestore.instance.collection("events").document(widget.eventId).collection("articles").document(widget.articleId).snapshots(),
           builder: (context, snapshot) {
             switch(snapshot.connectionState) {
@@ -132,7 +138,6 @@ class _AllocateArticleScreenState extends State<AllocateArticleScreen> {
                         CustomCard(
                           body: Column(
                             children: [
-                              loadEvaluators ? SizedBox() :
                               MultiSelectDialogField(
                                 searchable: true,
                                 buttonIcon: Icon(Icons.keyboard_arrow_down, size: 30),
