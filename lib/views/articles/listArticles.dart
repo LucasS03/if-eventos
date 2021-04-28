@@ -621,24 +621,21 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
                 getAuthorsTest(name: el.data["nome"]),
                 addInfo(
                   first: "Local: ",
-                  // last: el["local"],
-                  last: "???",
+                  last: el.data.containsKey("local") ? el.data["local"] : "Não cadastrado",
                   fontSize: 14,
                   color: Colors.grey[600],
                   fontWeight: FontWeight.bold
                 ),
                 addInfo(
                   first: "Número: ",
-                  // last: el["code"],
-                  last: "???",
+                  last: el.data.containsKey("numero") ? el.data["numero"] : "Não cadastrado",
                   fontSize: 14,
                   color: Colors.grey[600],
                   fontWeight: FontWeight.bold
                 ),
                 addInfo(
                   first: "Horário: ",
-                  // last: getHourEvent(hours: el["hour"]),
-                  last: "???",
+                  last: el.data.containsKey("horaInicio") ? el.data["horaInicio"] + (el.data.containsKey("horaFinal") ? " às " + el.data["horaFinal"] : "") : "Não cadastrado",
                   fontSize: 14,
                   color: Colors.grey[600],
                   fontWeight: FontWeight.bold

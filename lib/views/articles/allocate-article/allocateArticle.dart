@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:ifeventos/views/articles/edit-article/editArticle.dart';
 import 'package:ifeventos/views/articles/rate/listEvaluations.dart';
 import 'package:ifeventos/widgets/button-default.dart';
 import 'package:ifeventos/widgets/custom-card.dart';
@@ -76,19 +77,16 @@ class _AllocateArticleScreenState extends State<AllocateArticleScreen> {
         ),
         actions: [
           IconButton(
-              icon: Icon(Icons.edit),
-              tooltip: "Editar artigo",
-              onPressed: () async {
-                // bool updateEvent = await Navigator.push(
-                //   context,
-                //   MaterialPageRoute(builder: (context) => EditEventScreen(eventId: widget.eventId)),
-                // );
-
-                // if(updateEvent != null && updateEvent)
-                //   getEvent();
-              },
-            )
-          ]
+            icon: Icon(Icons.edit),
+            tooltip: "Editar artigo",
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => EditArticleScreen(eventId: widget.eventId, articleId: widget.articleId)),
+              );
+            },
+          )
+        ]
       ),
 
       body:   Container(
