@@ -17,6 +17,7 @@ class _SignInScreenState extends State<SignInScreen> {
   TextEditingController _pwdController = new TextEditingController();
   bool _validatePwd = false;
   bool _validateMail = false;
+  bool _hiddenPassword = true;
   String _pwdError = "";
   String _mailError = "";
 
@@ -203,7 +204,7 @@ class _SignInScreenState extends State<SignInScreen> {
                     TextField(
                       controller: _pwdController,
                       cursorColor: Colors.greenAccent,
-                      obscureText: true,
+                      obscureText: _hiddenPassword,
                       style: TextStyle(
                         color: Colors.white
                       ),
@@ -211,6 +212,12 @@ class _SignInScreenState extends State<SignInScreen> {
                       decoration: InputDecoration(
                         labelText: "Senha",
                         errorText: _validatePwd ? _pwdError : null,
+                        suffix: IconButton(
+                          icon: _hiddenPassword ? Icon(Icons.visibility, color: Colors.white) : Icon(Icons.visibility_off, color: Colors.white),
+                          onPressed: () {
+                            setState(() => _hiddenPassword = !_hiddenPassword);
+                          }
+                        ),
                         labelStyle: TextStyle(
                           color: Colors.grey
                         ),

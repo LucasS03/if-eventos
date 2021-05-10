@@ -2,8 +2,11 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:csv/csv.dart';
+import 'package:excel/excel.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:get_storage/get_storage.dart';
+
 import 'package:ifeventos/views/articles/allocate-article/allocateArticle.dart';
 import 'package:ifeventos/views/articles/rate/rateArticle.dart';
 import 'package:ifeventos/views/articles/sendArticles.dart';
@@ -52,7 +55,35 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
   ];
 
   getEvaluations() async {
-    
+    var excel = Excel.createExcel();
+    excel.appendRow('Sheet1', [
+      "Trabalho",
+      "Avaliador",
+      "Não compareceu",
+      "Na Introdução consta claramente a relevância do tema e os seus objetivos",
+      "Fundamentação teórico-científica",
+      "Adequação da metodologia ao tipo de trabalho",
+      "Domínio do conteúdo na apresentação",
+      "Qualidade da organização e apresentação do trabalho (recursos didáticos utilizados, slides e outros)"
+    ]);
+
+    CellStyle cellStyle = CellStyle(
+      backgroundColorHex: "#CDCDCD", 
+      bold: true, 
+      fontSize: 12, 
+      textWrapping: TextWrapping.WrapText,
+      verticalAlign: VerticalAlign.Top
+    );
+    excel.updateCell('Sheet1', CellIndex.indexByString("A1"), "Trabalho", cellStyle: cellStyle);
+    excel.updateCell('Sheet1', CellIndex.indexByString("B1"), "Avaliador", cellStyle: cellStyle);
+    excel.updateCell('Sheet1', CellIndex.indexByString("C1"), "Não compareceu", cellStyle: cellStyle);
+    excel.updateCell('Sheet1', CellIndex.indexByString("D1"), "Na Introdução consta claramente a relevância do tema e os seus objetivos", cellStyle: cellStyle);
+    excel.updateCell('Sheet1', CellIndex.indexByString("E1"), "Fundamentação teórico-científica", cellStyle: cellStyle);
+    excel.updateCell('Sheet1', CellIndex.indexByString("F1"), "Adequação da metodologia ao tipo de trabalho", cellStyle: cellStyle);
+    excel.updateCell('Sheet1', CellIndex.indexByString("G1"), "Domínio do conteúdo na apresentação", cellStyle: cellStyle);
+    excel.updateCell('Sheet1', CellIndex.indexByString("H1"), "Qualidade da organização e apresentação do trabalho (recursos didáticos utilizados, slides e outros)", cellStyle: cellStyle);
+      
+
     // Puxa todos os Artigos
     await Firestore.instance.collection("events").document(widget.eventId).collection("articles").getDocuments().then((value) async {
       // pra cada artigo, puxa as avaliações
@@ -67,31 +98,55 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
           List row = [];
           DocumentSnapshot evaluator = await Firestore.instance.collection("users").document(evaluations.documents[j].data["idEvaluator"]).get();
 
-          row.add(value.documents[i].data["titulo"]);
-          row.add(evaluator.data["name"]);
-          row.add(evaluations.documents[j].data.containsKey("didNotAttend") && evaluations.documents[j].data["didNotAttend"] ? "Não compareceu" : "");
-          row.add(evaluations.documents[j].data["clarity"]);
-          row.add(evaluations.documents[j].data["reasoning"]);
-          row.add(evaluations.documents[j].data["methodologyAdequacy"]);
-          row.add(evaluations.documents[j].data["domain"]);
-          row.add(evaluations.documents[j].data["quality"]);
-          listOfLists.add(row);
+          // row.add(value.documents[i].data["titulo"]);
+          // row.add(evaluator.data["name"]);
+          // row.add(evaluations.documents[j].data.containsKey("didNotAttend") && evaluations.documents[j].data["didNotAttend"] ? "Não compareceu" : "");
+          // row.add(evaluations.documents[j].data["clarity"]);
+          // row.add(evaluations.documents[j].data["reasoning"]);
+          // row.add(evaluations.documents[j].data["methodologyAdequacy"]);
+          // row.add(evaluations.documents[j].data["domain"]);
+          // row.add(evaluations.documents[j].data["quality"]);
+          // listOfLists.add(row);
+          excel.appendRow("Sheet1", [
+            value.documents[i].data["titulo"],
+            evaluator.data["name"],
+            evaluations.documents[j].data.containsKey("didNotAttend") && evaluations.documents[j].data["didNotAttend"] ? "Não compareceu" : "",
+            evaluations.documents[j].data["clarity"],
+            evaluations.documents[j].data["reasoning"],
+            evaluations.documents[j].data["methodologyAdequacy"],
+            evaluations.documents[j].data["domain"],
+            evaluations.documents[j].data["quality"]
+          ]);
         }
 
         // Pular linha
-        listOfLists.add([]);
+        excel.appendRow('Sheet1', [ "", "", "", "", "", "", "", "" ]);
+        // listOfLists.add([]);
       }
 
-      String csv = const ListToCsvConverter().convert(listOfLists);
+      // String csv = const ListToCsvConverter().convert(listOfLists);
 
       String dir = (await getExternalStorageDirectory()).absolute.path;
-      String file = "$dir" + "/avaliacoes_${eventFull.data["title"]}.csv";
-        
-      File f = new File(file);
-      f.writeAsString(csv);
+      DateTime now = new DateTime.now();
+      String file = "$dir" + "/avaliacoes_excel_${now.microsecondsSinceEpoch}.xlsx";
 
-      Navigator.pop(context);
-      Share.shareFiles([file], text: "Avaliações do Evento \"${eventFull.data["title"]}\"");
+      excel.encode().then((onValue) {
+        File(file)
+        ..createSync(recursive: true)
+        ..writeAsBytesSync(onValue);
+        
+        Navigator.pop(context);
+        Share.shareFiles([file], text: "Avaliações do Evento \"${eventFull.data["title"]}\"");
+      });
+        
+      // File f = new File(file);
+      // if(await f.exists())  
+      //   f.delete();
+
+      // f.writeAsString(csv);
+
+      // Navigator.pop(context);
+      // Share.shareFiles([file], text: "Avaliações do Evento \"${eventFull.data["title"]}\"");
 
     }).catchError((onError) {
       Navigator.pop(context);
@@ -194,6 +249,150 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
     return false;
   }
 
+  List<CustomPopupMenu> choices = [
+    CustomPopupMenu(title: 'Compartilhar avaliações', pos: 0),
+    CustomPopupMenu(title: 'Adicionar trabalhos', pos: 1),
+    CustomPopupMenu(title: 'Editar evento', pos: 2),
+    CustomPopupMenu(title: 'Finalizar evento', pos: 3),
+    CustomPopupMenu(title: 'Excluir evento', pos: 4),
+  ];
+
+  void _moreOptionsSelected(CustomPopupMenu choice) async {
+    print(choice.toString());
+    if(choice.pos == 0) {
+      getEvaluations();
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context){
+          return Center(child: CircularProgressIndicator());
+        }
+      );
+    } else if(choice.pos == 1) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => SendArticlesScreen(eventId: widget.eventId)),
+      );
+    } else if(choice.pos == 2) {
+      bool updateEvent = await Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => EditEventScreen(eventId: widget.eventId)),
+      );
+
+      if(updateEvent != null && updateEvent)
+        getEvent();
+    } else if(choice.pos == 3) {
+      print("modal");
+      showDialog(
+        context: context,
+        builder: (BuildContext context){
+          return new AlertDialog(
+            title: new Text("Tem certeza?"),
+            content: Container(
+              height: 150.0,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget> [
+                  RichText(
+                    text: TextSpan(
+                      style: Theme.of(context).textTheme.headline6.merge(TextStyle(fontSize: 16)),
+                      children: <TextSpan>[
+                        TextSpan(text: "Ao clicar em "),
+                        TextSpan(text: "SIM ", style: new TextStyle(fontWeight: FontWeight.bold, color: Colors.green)),
+                        TextSpan(text: "você informa que o concorda em finalizar o evento "),
+                        TextSpan(text: "${eventFull.data["title"]}", style: new TextStyle(fontWeight: FontWeight.bold)),
+                      ]
+                    ),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      FlatButton(
+                        color: Colors.green,
+                        child: Text("SIM", style: TextStyle(color: Colors.white)),
+                        onPressed: () async {
+                          await Firestore.instance.collection("events").document(widget.eventId).updateData({ "finished": true });
+                          generateRanking();
+                          showDialog(
+                            context: context,
+                            barrierDismissible: false,
+                            builder: (BuildContext context){
+                              return Center(child: CircularProgressIndicator());
+                            }
+                          );
+                        }, 
+                      ),
+                      SizedBox(width: 10.0),
+                      FlatButton(
+                        color: Colors.redAccent[200],
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        }, 
+                        child: Text("NÃO", style: TextStyle(color: Colors.white))
+                      ),
+                    ],
+                  )
+                ]
+              )
+            )
+          );
+        }
+      );
+    } else if(choice.pos == 4) {
+      showDialog(context: context,
+        builder: (BuildContext context){
+          return new AlertDialog(
+            title: new Text("Tem certeza?"),
+            content: Container(
+              height: 150.0,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget> [
+                  RichText(
+                    text: TextSpan(
+                      style: Theme.of(context).textTheme.headline6.merge(TextStyle(fontSize: 16)),
+                      children: <TextSpan>[
+                        TextSpan(text: "Ao clicar em "),
+                        TextSpan(text: "SIM ", style: new TextStyle(fontWeight: FontWeight.bold, color: Colors.green)),
+                        TextSpan(text: "você informa que o concorda em excluir o evento "),
+                        TextSpan(text: "${eventFull.data["title"]}", style: new TextStyle(fontWeight: FontWeight.bold)),
+                      ]
+                    ),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      FlatButton(
+                        color: Colors.green,
+                        child: Text("SIM", style: TextStyle(color: Colors.white)),
+                        onPressed: () async {
+                          // TODO: excluir articles
+                          // TODO: excluir evaluators
+                          // TODO: excluir ranking
+                          await Firestore.instance.collection("events").document(widget.eventId).delete();
+                          Navigator.pop(context);
+                          Navigator.pop(context);
+                        }, 
+                      ),
+                      SizedBox(width: 10.0),
+                      FlatButton(
+                        color: Colors.redAccent[200],
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        }, 
+                        child: Text("NÃO", style: TextStyle(color: Colors.white))
+                      ),
+                    ],
+                  )
+                ]
+              )
+            )
+          );
+        }
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -205,57 +404,23 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
-        actions: [
-          // Editar evento
+        actions: [          
           Visibility(
             visible: this.user["type"] == "GESTOR",
-            child: IconButton(
-              icon: Icon(Icons.edit),
-              tooltip: "Editar evento",
-              onPressed: () async {
-                bool updateEvent = await Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => EditEventScreen(eventId: widget.eventId)),
-                );
-
-                if(updateEvent != null && updateEvent)
-                  getEvent();
-              },
-            )
-          ),
-          
-          // Adicionar trabalhos
-          Visibility(
-            visible: this.user["type"] == "GESTOR",
-            child: IconButton(
-              icon: Icon(Icons.note_add),
-              tooltip: "Adicionar trabalhos",
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => SendArticlesScreen(eventId: widget.eventId)),
-                );
-              },
-            )
-          ),
-          
-          // Compartilhar avaliações
-          Visibility(
-            visible: this.user["type"] == "GESTOR",
-            child: IconButton(
-              icon: Icon(Icons.share),
-              tooltip: "Compartilhar avaliações",
-              onPressed: () {
-                getEvaluations();
-                showDialog(
-                  context: context,
-                  barrierDismissible: false,
-                  builder: (BuildContext context){
-                    return Center(child: CircularProgressIndicator());
-                  }
-                );
-              },
-            )
+            child: PopupMenuButton<CustomPopupMenu>(
+              elevation: 3.2,
+              tooltip: 'Mais opções',
+              padding: EdgeInsets.zero,
+              onSelected: _moreOptionsSelected,
+              itemBuilder: (BuildContext context) {
+                return choices.map((CustomPopupMenu choice) {
+                  return PopupMenuItem<CustomPopupMenu>(
+                    value: choice,
+                    child: Text(choice.title),
+                  );
+                }).toList();
+              }
+            ),
           )
         ],
       ),
@@ -271,36 +436,6 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
         ListView(
         padding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
         children: <Widget>[
-
-          // Botão de finalizar evento
-          Visibility(
-            visible: this.user["type"] == "GESTOR",
-            child: Column(
-              children: [
-                ButtonDefault(
-                  title: "Finalizar Evento",
-                  color: Colors.yellow[100],
-                  textStyle: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.yellow[800]
-                  ),
-                  onTap: () async { 
-                    await Firestore.instance.collection("events").document(widget.eventId).updateData({ "finished": true });
-                    generateRanking();
-                    showDialog(
-                      context: context,
-                      barrierDismissible: false,
-                      builder: (BuildContext context){
-                        return Center(child: CircularProgressIndicator());
-                      }
-                    );
-                  },
-                ),
-                SizedBox(height: 10),
-              ],
-            ),
-          ),
 
           // Informações do evento
           Container(
@@ -505,6 +640,20 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
     );
   }
 
+  PopupMenuItem popupMenuItemCustom({ @required String title, @required GestureTapCallback onTap }) {
+    return PopupMenuItem(
+      value: "",
+      textStyle: TextStyle(color: Colors.black, fontWeight: FontWeight.normal),
+      child: InkWell(
+        onTap: onTap,
+        child: Text(
+          title,
+          style: TextStyle(fontSize: 16)
+        ),
+      ),
+    );
+  }
+
   generateRanking() async {
     List<Map<String, dynamic>> ranking = [];
 
@@ -554,6 +703,7 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
       Firestore.instance.collection("events").document(widget.eventId).collection("ranking").document(e["articleId"]).setData(e);
     });
 
+    Navigator.pop(context);
     Navigator.pop(context);
   }
 
@@ -794,4 +944,11 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
 
     return h.substring(0, h.length-2);
   }
+}
+
+class CustomPopupMenu {
+  final String title;
+  final int pos;
+
+  CustomPopupMenu({ @required this.title, @required this.pos });
 }
