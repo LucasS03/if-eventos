@@ -22,6 +22,8 @@ class _DetailRateArticleScreenState extends State<DetailRateArticleScreen> {
   double _item3 = 3;
   double _item4 = 3;
   double _item5 = 3;
+  double _item6 = 3;
+  double _item7 = 3;
 
   @override
   Widget build(BuildContext context) {
@@ -229,6 +231,68 @@ class _DetailRateArticleScreenState extends State<DetailRateArticleScreen> {
                             max: 5,
                             divisions: 4,
                             label: _item5.round().toString(),
+                            onChanged: null,
+                          ),
+                        ),
+                        Text("5", style: TextStyle(fontSize: 16))
+                      ],
+                    ),
+                  ],
+                )
+              ),
+
+              CustomCard(
+                body: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      "Apresentação dos resultados (parciais ou finais) e conclusões:",
+                      style: Theme.of(context).textTheme.headline6,
+                    ),
+                    
+                    Row(
+                      mainAxisSize: MainAxisSize.max,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        Text("1", style: TextStyle(fontSize: 16)),
+                        Expanded(
+                          child: Slider(
+                            value: _item6,
+                            min: 1,
+                            max: 5,
+                            divisions: 4,
+                            label: _item6.round().toString(),
+                            onChanged: null,
+                          ),
+                        ),
+                        Text("5", style: TextStyle(fontSize: 16))
+                      ],
+                    ),
+                  ],
+                )
+              ),
+
+              CustomCard(
+                body: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      "Adequação da apresentação ao tempo disponível:",
+                      style: Theme.of(context).textTheme.headline6,
+                    ),
+
+                    Row(
+                      mainAxisSize: MainAxisSize.max,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        Text("1", style: TextStyle(fontSize: 16)),
+                        Expanded(
+                          child: Slider(
+                            value: _item7,
+                            min: 1,
+                            max: 5,
+                            divisions: 4,
+                            label: _item7.round().toString(),
                             onChanged: null,
                           ),
                         ),

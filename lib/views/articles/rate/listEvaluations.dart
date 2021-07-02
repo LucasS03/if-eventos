@@ -28,7 +28,9 @@ class _ListEvaluationsScreenState extends State<ListEvaluationsScreen> {
       "Fundamentação teórico-científica",
       "Adequação da metodologia ao tipo de trabalho",
       "Domínio do conteúdo na apresentação",
-      "Qualidade da organização e apresentação do trabalho (recursos didáticos utilizados, slides e outros)"
+      "Qualidade da organização e apresentação do trabalho (recursos didáticos utilizados, slides e outros)",
+      "Apresentação dos resultados (parciais ou finais) e conclusões",
+      "Adequação da apresentação ao tempo disponível"
     ]
   ];
   List data = [];
@@ -175,6 +177,10 @@ class _ListEvaluationsScreenState extends State<ListEvaluationsScreen> {
                                   item(description: "Domínio do conteúdo na apresentação:", value: snapshot.data.documents[i].data["domain"]),
                                   SizedBox(height:15),
                                   item(description: "Qualidade da organização e apresentação do trabalho (recursos didáticos utilizados, slides e outros):", value: snapshot.data.documents[i].data["quality"]),
+                                  SizedBox(height:15),
+                                  item(description: "Apresentação dos resultados (parciais ou finais) e conclusões:", value: snapshot.data.documents[i].data["result"]),
+                                  SizedBox(height:15),
+                                  item(description: "Adequação da apresentação ao tempo disponível:", value: snapshot.data.documents[i].data["time"]),
                                 ],
                               )
                             ),

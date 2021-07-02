@@ -50,7 +50,9 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
       "Fundamentação teórico-científica",
       "Adequação da metodologia ao tipo de trabalho",
       "Domínio do conteúdo na apresentação",
-      "Qualidade da organização e apresentação do trabalho (recursos didáticos utilizados, slides e outros)"
+      "Qualidade da organização e apresentação do trabalho (recursos didáticos utilizados, slides e outros)",
+      "Apresentação dos resultados (parciais ou finais) e conclusões",
+      "Adequação da apresentação ao tempo disponível"
     ]
   ];
 
@@ -64,7 +66,9 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
       "Fundamentação teórico-científica",
       "Adequação da metodologia ao tipo de trabalho",
       "Domínio do conteúdo na apresentação",
-      "Qualidade da organização e apresentação do trabalho (recursos didáticos utilizados, slides e outros)"
+      "Qualidade da organização e apresentação do trabalho (recursos didáticos utilizados, slides e outros)",
+      "Apresentação dos resultados (parciais ou finais) e conclusões",
+      "Adequação da apresentação ao tempo disponível"
     ]);
 
     CellStyle cellStyle = CellStyle(
@@ -82,6 +86,8 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
     excel.updateCell('Sheet1', CellIndex.indexByString("F1"), "Adequação da metodologia ao tipo de trabalho", cellStyle: cellStyle);
     excel.updateCell('Sheet1', CellIndex.indexByString("G1"), "Domínio do conteúdo na apresentação", cellStyle: cellStyle);
     excel.updateCell('Sheet1', CellIndex.indexByString("H1"), "Qualidade da organização e apresentação do trabalho (recursos didáticos utilizados, slides e outros)", cellStyle: cellStyle);
+    excel.updateCell('Sheet1', CellIndex.indexByString("I1"), "Apresentação dos resultados (parciais ou finais) e conclusões", cellStyle: cellStyle);
+    excel.updateCell('Sheet1', CellIndex.indexByString("J1"), "Adequação da apresentação ao tempo disponível", cellStyle: cellStyle);
       
 
     // Puxa todos os Artigos
@@ -115,12 +121,14 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
             evaluations.documents[j].data["reasoning"],
             evaluations.documents[j].data["methodologyAdequacy"],
             evaluations.documents[j].data["domain"],
-            evaluations.documents[j].data["quality"]
+            evaluations.documents[j].data["quality"],
+            evaluations.documents[j].data["results"],
+            evaluations.documents[j].data["time"],
           ]);
         }
 
         // Pular linha
-        excel.appendRow('Sheet1', [ "", "", "", "", "", "", "", "" ]);
+        excel.appendRow('Sheet1', [ "", "", "", "", "", "", "", "", "", "" ]);
         // listOfLists.add([]);
       }
 

@@ -48,15 +48,19 @@ class _AllocateArticleScreenState extends State<AllocateArticleScreen> {
       .collection("evaluators").where("articleIds", arrayContains: widget.articleId).getDocuments().then((evaluatorsThisArticle) {
         evaluatorsThisArticle.documents.forEach((element) async {
           int index = _evaluators.indexWhere((u) => u["documentID"] == element.data["userId"]);
-          if(index >= 0) {
+          
+          if(index >= 0)
             setState(() => _selectedEvaluators.add(_evaluators[index]));
-          }
+
+          if(element.data.toString() == evaluatorsThisArticle.documents.last.data.toString())
+            setState(() => loadEvaluators = false);
         });
+
+        if(evaluatorsThisArticle.documents.length == 0)
+          setState(() => loadEvaluators = false);
       });
 
     _selectedEvaluatorsInit.addAll(_evaluators);
-
-    setState(() => loadEvaluators = false);
   }
 
   @override

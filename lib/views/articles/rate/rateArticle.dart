@@ -37,6 +37,10 @@ class _RateArticleScreenState extends State<RateArticleScreen> {
   bool _item4changed = false;
   double _item5 = 3;
   bool _item5changed = false;
+  double _item6 = 3;
+  bool _item6changed = false;
+  double _item7 = 3;
+  bool _item7changed = false;
   
   _handleRadioValueChange(String value) {
     setState(() {
@@ -75,6 +79,8 @@ class _RateArticleScreenState extends State<RateArticleScreen> {
         _item3 = eval.data["methodologyAdequacy"];
         _item4 = eval.data["domain"];
         _item5 = eval.data["quality"];
+        _item6 = eval.data["result"];
+        _item7 = eval.data["time"];
         _didNotAttend = eval.data["didNotAttend"] != null ? eval.data["didNotAttend"] : false;
         _finished = eval.data["finished"] != null ? eval.data["finished"] : false;
         _item1changed = true;
@@ -82,6 +88,8 @@ class _RateArticleScreenState extends State<RateArticleScreen> {
         _item3changed = true;
         _item4changed = true;
         _item5changed = true;
+        _item6changed = true;
+        _item7changed = true;
       });
     }
 
@@ -227,7 +235,7 @@ class _RateArticleScreenState extends State<RateArticleScreen> {
                           if(_didNotAttend) {
                             setState(() {
                               _didNotAttend = !_didNotAttend;
-                              _item1 = _item2 = _item3 = _item4 = _item5 = _didNotAttend ? 1.0 : 3.0;
+                              _item1 = _item2 = _item3 = _item4 = _item5 = _item6 = _item7 = _didNotAttend ? 1.0 : 3.0;
                             });
                           } else {
                             showDialog(context: context,
@@ -257,7 +265,7 @@ class _RateArticleScreenState extends State<RateArticleScreen> {
                                               onPressed: () {
                                                 setState(() {
                                                   _didNotAttend = !_didNotAttend;
-                                                  _item1 = _item2 = _item3 = _item4 = _item5 = _didNotAttend ? 1.0 : 3.0;
+                                                  _item1 = _item2 = _item3 = _item4 = _item5 = _item6 = _item7 = _didNotAttend ? 1.0 : 3.0;
                                                 });
                                                 Navigator.of(context).pop();
                                               }, 
@@ -581,6 +589,92 @@ class _RateArticleScreenState extends State<RateArticleScreen> {
                 )
               ),
 
+              // 6 - Apresentação dos resultados
+              CustomCard(
+                body: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      "Apresentação dos resultados (parciais ou finais) e conclusões",
+                      style: Theme.of(context).textTheme.headline6.merge(
+                        TextStyle(fontSize: 16)
+                      ),
+                    ),
+
+                    Row(
+                      mainAxisSize: MainAxisSize.max,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        Text("1", style: TextStyle(fontSize: 16)),
+                        Expanded(
+                          child: Slider(
+                            value: _item6,
+                            min: 1,
+                            max: 5,
+                            divisions: 4,
+                            label: _item6.round().toString(),
+                            activeColor: _item6changed ? Colors.green : Colors.grey[400],
+                            inactiveColor: Colors.grey,
+                            onChangeStart: (d) {
+                              setState(() => _item6changed = true);
+                            },
+                            onChanged: _finished ? null : _didNotAttend ? null : (double value) {
+                              setState(() {
+                                _item6 = value;
+                              });
+                            },
+                          ),
+                        ),
+                        Text("5", style: TextStyle(fontSize: 16))
+                      ],
+                    ),
+                  ],
+                )
+              ),
+
+              // 7 - Adequação da apresentação ao tempo disponível
+              CustomCard(
+                body: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      "Adequação da apresentação ao tempo disponível",
+                      style: Theme.of(context).textTheme.headline6.merge(
+                        TextStyle(fontSize: 16)
+                      ),
+                    ),
+
+                    Row(
+                      mainAxisSize: MainAxisSize.max,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        Text("1", style: TextStyle(fontSize: 16)),
+                        Expanded(
+                          child: Slider(
+                            value: _item7,
+                            min: 1,
+                            max: 5,
+                            divisions: 4,
+                            label: _item7.round().toString(),
+                            activeColor: _item7changed ? Colors.green : Colors.grey[400],
+                            inactiveColor: Colors.grey,
+                            onChangeStart: (d) {
+                              setState(() => _item7changed = true);
+                            },
+                            onChanged: _finished ? null : _didNotAttend ? null : (double value) {
+                              setState(() {
+                                _item7 = value;
+                              });
+                            },
+                          ),
+                        ),
+                        Text("5", style: TextStyle(fontSize: 16))
+                      ],
+                    ),
+                  ],
+                )
+              ),
+
               SizedBox(
                 height: 50,
                 width: double.maxFinite,
@@ -604,7 +698,7 @@ class _RateArticleScreenState extends State<RateArticleScreen> {
                     ],
                   ),
                   onPressed: _finished ? null :
-                  _didNotAttend || (_item1changed && _item2changed && _item3changed && _item4changed && _item5changed) ? 
+                  _didNotAttend || (_item1changed && _item2changed && _item3changed && _item4changed && _item5changed && _item6changed && _item7changed) ? 
                   () {
                     Map<String, dynamic> eval = {
                       "date": _date,
@@ -614,6 +708,8 @@ class _RateArticleScreenState extends State<RateArticleScreen> {
                       "methodologyAdequacy": _item3,
                       "domain": _item4,
                       "quality": _item5,
+                      "result": _item6,
+                      "time": _item7,
                       "idEvaluator": userId,
                       "didNotAttend": _didNotAttend,
                       "finished": false
