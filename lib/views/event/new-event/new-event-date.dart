@@ -92,6 +92,13 @@ class _NewEventDateScreenState extends State<NewEventDateScreen> {
                                       ),
                                       onChanged: (dt) =>
                                           setState(() => _dateEnd = dt),
+                                      validator: (value) {
+                                        if(_dateEnd.isBefore(_dateBegin)) {
+                                          return 'A data final não pode ser anterior à data inicial!';
+                                        } else {
+                                          return null;
+                                        }
+                                      },
                                       onShowPicker: (context, currentValue) {
                                         // todo primeira data fim disponível = data de início
                                         return showDatePicker(

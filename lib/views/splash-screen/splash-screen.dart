@@ -32,13 +32,13 @@ class _SplashScreenState extends State<SplashScreen> {
         MaterialPageRoute(builder: (context) => HomeApp()),
       );
     } else {
+      //TODO por que não colocar uma duração para evitar o loading infinito?
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => SignInScreen()),
       );
     }
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(

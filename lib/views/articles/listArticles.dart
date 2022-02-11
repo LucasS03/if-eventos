@@ -39,6 +39,9 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
   bool _load = true;
   bool _loadArticles = false;
   bool _eventFinished = false;
+  Icon customIcon = const Icon(Icons.search);
+  Widget customSearchBar = const Text("Evento", maxLines: 1, overflow: TextOverflow.ellipsis);
+  TextEditingController searchText = TextEditingController();
 
   List data = [];
   List<List> listOfLists = [
@@ -122,7 +125,7 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
             evaluations.documents[j].data["methodologyAdequacy"],
             evaluations.documents[j].data["domain"],
             evaluations.documents[j].data["quality"],
-            evaluations.documents[j].data["results"],
+            evaluations.documents[j].data["result"],
             evaluations.documents[j].data["time"],
           ]);
         }
@@ -188,7 +191,11 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
 
     DateTime dateEvent = DateTime.fromMillisecondsSinceEpoch((eventFull.data["dateEnd"].seconds  - (60*60*3)) * 1000);
     DateTime dateNow = new DateTime.now();
-    if(dateEvent.isBefore(dateNow))
+    //TODO - colocar condição a mais para finalização do evento
+    DocumentSnapshot data = await Firestore.instance
+        .collection("events").document(widget.eventId)
+        .get();
+    if(dateEvent.isBefore(dateNow) || data.data["finished"] == true)
       setState(() => _eventFinished = true);
     
     setState(() => _load = false);
@@ -267,6 +274,7 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
 
   void _moreOptionsSelected(CustomPopupMenu choice) async {
     print(choice.toString());
+    //TODO dentro desse if colocar ' && articlesFull.length != 0 '?
     if(choice.pos == 0) {
       getEvaluations();
       showDialog(
@@ -281,7 +289,8 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
         context,
         MaterialPageRoute(builder: (context) => SendArticlesScreen(eventId: widget.eventId)),
       );
-    } else if(choice.pos == 2) {
+      //TODO sugestão: dentro do if colocar um ' && !_eventFinished ' para não deixar editar depois de finalizado
+    } else if(choice.pos == 2 && !_eventFinished) {
       bool updateEvent = await Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => EditEventScreen(eventId: widget.eventId)),
@@ -319,6 +328,9 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
                         color: Colors.green,
                         child: Text("SIM", style: TextStyle(color: Colors.white)),
                         onPressed: () async {
+                          setState(() {
+                            _eventFinished = true;
+                          });
                           await Firestore.instance.collection("events").document(widget.eventId).updateData({ "finished": true });
                           generateRanking();
                           showDialog(
@@ -406,13 +418,46 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
     return Scaffold(
       backgroundColor: Color(0xffdddddd),
       appBar: AppBar(
-        title: Text(
-          // _load ? '...' : eventFull.data["title"],
-          "Evento",
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        actions: [          
+        title: customSearchBar,
+        actions: [
+          IconButton(
+            icon: customIcon,
+            onPressed: () {
+              setState(() {
+                if(customIcon.icon == Icons.search) {
+                  customIcon = Icon(Icons.cancel);
+                  customSearchBar = ListTile(
+                    leading: Icon(
+                      Icons.search,
+                      color: Colors.white,
+                      size: 28
+                    ),
+                    title: TextField(
+                      //TODO - implementar busca
+                      controller: searchText,
+                      cursorColor: Colors.white,
+                      autofocus: true,
+                      decoration: InputDecoration(
+                        hintText: " Buscar artigos",
+                        hintStyle: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontStyle: FontStyle.italic,
+                        ),
+                        border: InputBorder.none
+                      ),
+                      style: TextStyle(color: Colors.white),
+                    ),
+
+                  );
+
+                } else {
+                  customIcon = const Icon(Icons.search);
+                  customSearchBar = const Text("Evento", maxLines: 1, overflow: TextOverflow.ellipsis);
+                }
+              });
+            },
+          ),
           Visibility(
             visible: this.user["type"] == "GESTOR",
             child: PopupMenuButton<CustomPopupMenu>(
@@ -425,6 +470,8 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
                   return PopupMenuItem<CustomPopupMenu>(
                     value: choice,
                     child: Text(choice.title),
+                    enabled: !(choice.pos == 0 && articlesFull.length == 0 || (choice.pos == 2 && _eventFinished) ||
+                              (choice.pos != 4 && _eventFinished)),
                   );
                 }).toList();
               }
@@ -941,6 +988,30 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
         ],
       ),
     );
+  }
+
+  Widget session({ @required String title, @required Color color, @required Color textColor }) {
+    return Container(
+      margin: EdgeInsets.only(bottom: 5),
+      padding: EdgeInsets.all(5),
+      width: double.maxFinite,
+      decoration: BoxDecoration(
+          borderRadius: BorderRadius.all(
+              Radius.circular(3)
+          ),
+          color: color
+      ),
+      child: Text(
+          title,
+          style: Theme.of(context).textTheme.headline5.merge(
+              TextStyle(color: textColor)
+          )
+      ),
+    );
+  }
+
+  Widget BoxSearchAppBar() {
+
   }
 
   String getHourEvent({ @required List hours }) {

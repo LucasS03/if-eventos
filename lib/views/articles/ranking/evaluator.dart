@@ -89,7 +89,7 @@ class EvaluatorArticleScreenState extends State<EvaluatorArticleScreen> {
                                   SizedBox(height:15),
                                   item(description: "Qualidade da organização e apresentação do trabalho (recursos didáticos utilizados, slides e outros):", value: snapshot.data.documents[i].data["quality"]),
                                   SizedBox(height:15),
-                                  item(description: "Apresentação dos resultados (parciais ou finais) e conclusões:", value: snapshot.data.documents[i].data["results"]),
+                                  item(description: "Apresentação dos resultados (parciais ou finais) e conclusões:", value: snapshot.data.documents[i].data["result"]),
                                   SizedBox(height:15),
                                   item(description: "Adequação da apresentação ao tempo disponível:", value: snapshot.data.documents[i].data["time"]),
                                 ],

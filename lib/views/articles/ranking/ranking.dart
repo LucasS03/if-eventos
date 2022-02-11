@@ -53,7 +53,9 @@ class _RankingScreenState extends State<RankingScreen> {
               body: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 5),
                 child: Text(
-                  "O evento ainda não foi finalizado!\nO ranking será gerado após a finalização do evento.",
+                  // TODO - verificação se o evento foi finalizado
+                  "O ranking ainda não foi gerado!\nAguarde a finalização das avaliações",
+                  //"O evento ainda não foi finalizado!\nO ranking será gerado após a finalização do evento.",
                   style: Theme.of(context).textTheme.headline6.merge(
                     TextStyle(fontSize: 16, fontWeight: FontWeight.bold)
                   ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class RecoverPasswordScreen extends StatefulWidget {
   @override
@@ -6,7 +7,6 @@ class RecoverPasswordScreen extends StatefulWidget {
 }
 
 class _RecoverPasswordScreenState extends State<RecoverPasswordScreen> {
-
   final _formKey = GlobalKey<FormState>();
   TextEditingController _mailController = new TextEditingController();
   bool _recovered = false;
@@ -19,6 +19,9 @@ class _RecoverPasswordScreenState extends State<RecoverPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
+
+    FirebaseAuth auth = FirebaseAuth.instance;
+
     return Scaffold(
       backgroundColor: Color(0xffdddddd),
       appBar: AppBar(
@@ -108,8 +111,12 @@ class _RecoverPasswordScreenState extends State<RecoverPasswordScreen> {
                   width: double.maxFinite,
                   child: RaisedButton(
                     onPressed: () {
-                      if(_formKey.currentState.validate())
+                      if(_formKey.currentState.validate()) {
                         _recoverPassword();
+                        auth.sendPasswordResetEmail(email: _mailController.text).then((value) {
+                          print('Email enviado com sucesso');
+                        }).catchError((e) => print(e.toString()));
+                      }
                     },
                     color: Colors.green,
                     child: Text(

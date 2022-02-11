@@ -87,7 +87,7 @@ class _NewEventHourScreenState extends State<NewEventHourScreen> {
                                       controller: _endTimeController,
                                       decoration: InputDecoration(
                                         labelText:
-                                            'Horário de início do evento',
+                                            'Horário de fim do evento',
                                         prefixIcon: Icon(
                                             Icons.access_time_rounded,
                                             color: Colors.grey[600]),
@@ -95,7 +95,7 @@ class _NewEventHourScreenState extends State<NewEventHourScreen> {
                                       format: format,
                                       onShowPicker:
                                           (context, currentValue) async {
-                                        final time = await showTimePicker(
+                                        final TimeOfDay time = await showTimePicker(
                                           context: context,
                                           initialTime: TimeOfDay.fromDateTime(
                                               currentValue ?? DateTime.now()),

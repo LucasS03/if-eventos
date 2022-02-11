@@ -121,7 +121,41 @@ class _SendArticlesScreenState extends State<SendArticlesScreen> {
         ),
       ),
 
-      body: Container(
+      body:
+      Column(
+        children: [
+          Container(
+
+            width: double.maxFinite,
+            padding: EdgeInsets.all(5),
+            margin: EdgeInsets.fromLTRB(8.0, 7.0, 8.0, 0.0),
+            decoration: BoxDecoration(
+                borderRadius: BorderRadius.all(Radius.circular(5)),
+                color: Colors.yellow[100]
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 5),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Text(
+                    "Caro, organizador!\nO arquivo para submissão deve ser baixado na plataforma NL "
+                        "com as seguintes configurações:\n"
+                        "• Tipo de arquivo: .csv\n"
+              "• Separador de linha: CLRF\n"
+                "• Separador de colunas: ; (ponto e vírgula)\n"
+                "• Delimitador de texto: \" (aspas duplas)\n",
+                    style: Theme.of(context).textTheme.headline6.merge(
+                        TextStyle(fontSize: 16, fontWeight: FontWeight.bold)
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+      Container(
         padding: EdgeInsets.symmetric(horizontal: 10, vertical: 15),
         child: SingleChildScrollView(
           child: Container(
@@ -206,6 +240,8 @@ class _SendArticlesScreenState extends State<SendArticlesScreen> {
           )
         ),
       )
+        ],
+      ),
     );
   }
 }

@@ -23,6 +23,9 @@ class _AllocateArticleScreenState extends State<AllocateArticleScreen> {
   List _selectedEvaluators = [];
   List _selectedEvaluatorsInit = [];
   bool loadEvaluators = true;
+  bool hasEvaluation = true;
+  bool hasEvaluator = true;
+  bool _eventFinished = false;
 
   getEvaluators() async {
     setState(() => loadEvaluators = true);
@@ -63,9 +66,35 @@ class _AllocateArticleScreenState extends State<AllocateArticleScreen> {
     _selectedEvaluatorsInit.addAll(_evaluators);
   }
 
+  getEvaluations() async {
+    QuerySnapshot data = await Firestore.instance
+        .collection("events").document(widget.eventId)
+        .collection("articles").document(widget.articleId)
+        .collection("evaluations").where("finished", isEqualTo: true).getDocuments();
+
+    if(data.documents.length == 0)
+      setState(() {
+        hasEvaluation = false;
+      });
+
+  }
+  
+  eventFinished() async {
+    DocumentSnapshot data = await Firestore.instance
+        .collection("events").document(widget.eventId)
+        .get();
+    if(data.data["finished"] == true) {
+      setState(() {
+        _eventFinished = true;
+      });
+    }
+  }
+
   @override
   void initState() {
     getEvaluators();
+    getEvaluations();
+    eventFinished();
     super.initState();
   }
 
@@ -100,7 +129,18 @@ class _AllocateArticleScreenState extends State<AllocateArticleScreen> {
           child: CircularProgressIndicator()
         ) :
         StreamBuilder(
-          stream: Firestore.instance.collection("events").document(widget.eventId).collection("articles").document(widget.articleId).snapshots(),
+          stream: Firestore.instance
+              .collection("events")
+              .document(widget.eventId)
+              .collection("articles")
+              .document(widget.articleId).snapshots(),
+
+          /* Firestore.instance
+            .collection("events").document(widget.eventId)
+            .collection("articles").document(widget.articleId)
+            .collection("evaluations").where("finished", isEqualTo: true)
+            */
+
           builder: (context, snapshot) {
             switch(snapshot.connectionState) {
               case ConnectionState.none:
@@ -140,10 +180,10 @@ class _AllocateArticleScreenState extends State<AllocateArticleScreen> {
                         ButtonDefault(
                           title: "Ver Avaliações",
                           color: Colors.yellow[800],
-                          onTap: () {
+                          onTap: hasEvaluation == false ? null : () {
                             Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (context) => 
+                              MaterialPageRoute(builder: (context) =>
                                 ListEvaluationsScreen(eventId: widget.eventId, articleId: widget.articleId)
                               ),
                             );
@@ -152,117 +192,120 @@ class _AllocateArticleScreenState extends State<AllocateArticleScreen> {
 
                         SizedBox(height:10),
 
-                        CustomCard(
-                          body: Column(
-                            children: [
-                              MultiSelectDialogField(
-                                searchable: true,
-                                buttonIcon: Icon(Icons.keyboard_arrow_down, size: 30),
-                                buttonText: Text("Selecione os avaliadores",style: TextStyle(fontSize: 16)), 
-                                cancelText: Text("Cancelar",style: TextStyle(fontSize: 16)),
-                                confirmText: Text("Ok",style: TextStyle(fontSize: 16)),
-                                title: Text("Avaliadores"),
-                                items: _evaluators.map((e) => MultiSelectItem(e, "(${e["articlesToEvaluate"]}) ${e["name"]}")).toList(),
-                                listType: MultiSelectListType.LIST,
-                                initialValue: _selectedEvaluators,
-                                chipDisplay: MultiSelectChipDisplay(
-                                  items: _selectedEvaluators.map((e) => MultiSelectItem(e, "${e["name"]}")).toList(),
-                                  onTap: (value) {
-                                    setState(() {
-                                      _selectedEvaluators.remove(value);
+                        Visibility(
+                          visible: _eventFinished == false,
+                          child: CustomCard(
+                            body: Column(
+                              children: [
+                                MultiSelectDialogField(
+                                  searchable: true,
+                                  buttonIcon: Icon(Icons.keyboard_arrow_down, size: 30),
+                                  buttonText: Text("Selecione os avaliadores",style: TextStyle(fontSize: 16)),
+                                  cancelText: Text("Cancelar",style: TextStyle(fontSize: 16)),
+                                  confirmText: Text("Ok",style: TextStyle(fontSize: 16)),
+                                  title: Text("Avaliadores"),
+                                  items: _evaluators.map((e) => MultiSelectItem(e, "(${e["articlesToEvaluate"]}) ${e["name"]}")).toList(),
+                                  listType: MultiSelectListType.LIST,
+                                  initialValue: _selectedEvaluators,
+                                  chipDisplay: MultiSelectChipDisplay(
+                                    items: _selectedEvaluators.map((e) => MultiSelectItem(e, "${e["name"]}")).toList(),
+                                    onTap: (value) {
+                                      setState(() {
+                                        hasEvaluation == true ? null : _selectedEvaluators.remove(value);
+                                      });
+                                    },
+                                  ),
+                                  onConfirm: (values) {
+                                    _selectedEvaluators = values;
+
+                                    print("Avaliadores selecionados:");
+                                    _selectedEvaluators.forEach((element) {
+                                      print(element);
                                     });
                                   },
                                 ),
-                                onConfirm: (values) {
-                                  _selectedEvaluators = values;
-                                  
-                                  print("Avaliadores selecionados:");
-                                  _selectedEvaluators.forEach((element) {
-                                    print(element);
-                                  });
-                                },
-                              ),
 
-                              SizedBox(height: 20),
-                              ButtonDefault(
-                                title: "Salvar Avaliadores",
-                                onTap: () {
-                                  // aloca o trabalho para o avaliador 
-                                  _selectedEvaluators.forEach((ev) async {
-                                    DocumentSnapshot doc = await Firestore.instance
-                                      .collection("events").document(widget.eventId)
-                                      .collection("evaluators").document(ev["documentID"]).snapshots().first;
+                                SizedBox(height: 20),
+                                ButtonDefault(
+                                    title: "Salvar Avaliadores",
+                                    onTap: (_evaluators.isEmpty || (_eventFinished == true)) ? null : () {
+                                      // aloca o trabalho para o avaliador
+                                      _selectedEvaluators.forEach((ev) async {
+                                        DocumentSnapshot doc = await Firestore.instance
+                                            .collection("events").document(widget.eventId)
+                                            .collection("evaluators").document(ev["documentID"]).snapshots().first;
 
-                                    List events = [];
-                                    List articles = [];
-                                    if(doc.data["eventIds"] != null)
-                                      events.addAll(doc.data["eventIds"]);  
-                                    if(!events.contains(widget.eventId))
-                                      events.add(widget.eventId);
-                                    
-                                    if(doc.data["articleIds"] != null)
-                                      articles.addAll(doc.data["articleIds"]);  
-                                    if(!articles.contains(widget.articleId))
-                                      articles.add(widget.articleId);
+                                        List events = [];
+                                        List articles = [];
+                                        if(doc.data["eventIds"] != null)
+                                          events.addAll(doc.data["eventIds"]);
+                                        if(!events.contains(widget.eventId))
+                                          events.add(widget.eventId);
 
-                                    Firestore.instance
-                                      .collection("events").document(widget.eventId)
-                                      .collection("evaluators").document(ev["documentID"])
-                                      .updateData({
-                                        "eventIds": events,
-                                        "articleIds": articles
-                                      });
-                                  });
+                                        if(doc.data["articleIds"] != null)
+                                          articles.addAll(doc.data["articleIds"]);
+                                        if(!articles.contains(widget.articleId))
+                                          articles.add(widget.articleId);
 
-                                  // remove os que não estão mais como avaliadores deste trabalho
-                                  _selectedEvaluatorsInit.forEach((ev) async {
-                                    if(!_selectedEvaluators.contains(ev)) {
-                                      DocumentSnapshot doc = await Firestore.instance
-                                        .collection("events").document(widget.eventId)
-                                        .collection("evaluators").document(ev["documentID"]).snapshots().first;
-
-                                      List events = [];
-                                      List articles = [];
-                                      if(doc.data["eventIds"] != null)
-                                        events.addAll(doc.data["eventIds"]);  
-                                      if(!events.contains(widget.eventId))
-                                        events.add(widget.eventId);
-                                      
-                                      if(doc.data["articleIds"] != null)
-                                        articles.addAll(doc.data["articleIds"]);  
-                                      
-                                      int indexRemove = articles.indexWhere((element) => element == widget.articleId);
-                                      if(indexRemove >= 0)
-                                        articles.removeAt(indexRemove);
-
-                                      Firestore.instance
-                                        .collection("events").document(widget.eventId)
-                                        .collection("evaluators").document(ev["documentID"])
-                                        .updateData({
+                                        Firestore.instance
+                                            .collection("events").document(widget.eventId)
+                                            .collection("evaluators").document(ev["documentID"])
+                                            .updateData({
                                           "eventIds": events,
                                           "articleIds": articles
                                         });
-                                    }
-                                  });
+                                      });
 
-                                  showDialog(context: context,
-                                    builder: (BuildContext context){
-                                      return CustomDialogBox(
-                                        title: "Tudo Certo!",
-                                        descriptions: "Avaliadores salvos com sucesso! Agora eles terão acesso ao formulário de avaliação deste trabalho.",
-                                        text: "Ok",
-                                        icon: Icons.check,
-                                        iconColor: Colors.white,
-                                        color: Colors.greenAccent,
-                                        skipScreen: true,
+                                      // remove os que não estão mais como avaliadores deste trabalho
+                                      _selectedEvaluatorsInit.forEach((ev) async {
+                                        if(!_selectedEvaluators.contains(ev)) {
+                                          DocumentSnapshot doc = await Firestore.instance
+                                              .collection("events").document(widget.eventId)
+                                              .collection("evaluators").document(ev["documentID"]).snapshots().first;
+
+                                          List events = [];
+                                          List articles = [];
+                                          if(doc.data["eventIds"] != null)
+                                            events.addAll(doc.data["eventIds"]);
+                                          if(!events.contains(widget.eventId))
+                                            events.add(widget.eventId);
+
+                                          if(doc.data["articleIds"] != null)
+                                            articles.addAll(doc.data["articleIds"]);
+
+                                          int indexRemove = articles.indexWhere((element) => element == widget.articleId);
+                                          if(indexRemove >= 0)
+                                            articles.removeAt(indexRemove);
+
+                                          Firestore.instance
+                                              .collection("events").document(widget.eventId)
+                                              .collection("evaluators").document(ev["documentID"])
+                                              .updateData({
+                                            "eventIds": events,
+                                            "articleIds": articles
+                                          });
+                                        }
+                                      });
+
+                                      showDialog(context: context,
+                                          builder: (BuildContext context){
+                                            return CustomDialogBox(
+                                              title: "Tudo Certo!",
+                                              descriptions: "Avaliadores salvos com sucesso! Agora eles terão acesso ao formulário de avaliação deste trabalho.",
+                                              text: "Ok",
+                                              icon: Icons.check,
+                                              iconColor: Colors.white,
+                                              color: Colors.greenAccent,
+                                              skipScreen: true,
+                                            );
+                                          }
                                       );
                                     }
-                                  );
-                                }
-                              )
-                            ],
+                                )
+                              ],
+                            ),
                           ),
-                        ),
+                        )
                       ]
                     )
                   )

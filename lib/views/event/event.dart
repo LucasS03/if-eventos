@@ -6,6 +6,7 @@ import 'package:ifeventos/views/event/new-event/new-event.dart';
 import 'package:ifeventos/widgets/custom-card.dart';
 import 'package:ifeventos/widgets/custom-dialog-box.dart';
 import 'package:intl/intl.dart';
+import 'package:expandable/expandable.dart';
 
 class EventScreen extends StatefulWidget {
   @override
@@ -22,7 +23,10 @@ class _EventScreenState extends State<EventScreen> {
     return Scaffold(
       backgroundColor: Color(0xffdddddd),
       appBar: AppBar(
-        title: Text("Eventos"),
+        title: Text("Eventos",
+                style: Theme.of(context).textTheme.headline5.merge(
+                TextStyle(color: Colors.white))
+        ),
         automaticallyImplyLeading: false,
         actions: [
           this.user["type"] == "GESTOR" ?
@@ -59,11 +63,17 @@ class _EventScreenState extends State<EventScreen> {
                           padding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
                           child: Column(
                             children: [
-                              session(title: 'Próximos eventos', color: Colors.green, textColor: Colors.white),
-                              generateListEventsTest(e: snapshot.data.documents, isAfter: true),
-                              
-                              session(title: 'Eventos finalizados', color: Colors.orangeAccent, textColor: Colors.white),
-                              generateListEventsTest(e: snapshot.data.documents, isAfter: false),
+                              ExpandablePanel(
+                                header: session(title: 'Próximos eventos', color: Colors.grey, textColor: Colors.white),
+                                collapsed: null,
+                                expanded: generateListEventsTest(e: snapshot.data.documents, isAfter: true)
+                              ),
+
+                              ExpandablePanel(
+                                  header: session(title: 'Eventos finalizados', color: Colors.redAccent, textColor: Colors.white),
+                                  collapsed: null,
+                                  expanded: generateListEventsTest(e: snapshot.data.documents, isAfter: false)
+                              )
                             ],
                           ),
                         ),
