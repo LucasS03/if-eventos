@@ -41,7 +41,9 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
   bool _eventFinished = false;
   Icon customIcon = const Icon(Icons.search);
   Widget customSearchBar = const Text("Evento", maxLines: 1, overflow: TextOverflow.ellipsis);
-  TextEditingController searchText = TextEditingController();
+  String filterText = "";
+  bool _hasArticles = false;
+  List<DocumentSnapshot> filterData = [];
 
   List data = [];
   List<List> listOfLists = [
@@ -179,8 +181,19 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
   @override
   void initState() {
     getEvent();
+    hasArticles();
 
     super.initState();
+  }
+
+  hasArticles() async {
+    await Firestore.instance.collection("events").document(widget.eventId).collection("articles").getDocuments().then((value) async {
+      if(value.documents.isNotEmpty) {
+        setState(() {
+          _hasArticles = true;
+        });
+      }
+    });
   }
 
   getEvent() async {
@@ -289,7 +302,7 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
         context,
         MaterialPageRoute(builder: (context) => SendArticlesScreen(eventId: widget.eventId)),
       );
-      //TODO sugestão: dentro do if colocar um ' && !_eventFinished ' para não deixar editar depois de finalizado
+
     } else if(choice.pos == 2 && !_eventFinished) {
       bool updateEvent = await Navigator.push(
         context,
@@ -434,7 +447,6 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
                     ),
                     title: TextField(
                       //TODO - implementar busca
-                      controller: searchText,
                       cursorColor: Colors.white,
                       autofocus: true,
                       decoration: InputDecoration(
@@ -447,6 +459,11 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
                         border: InputBorder.none
                       ),
                       style: TextStyle(color: Colors.white),
+                      onChanged: (text) {
+                        setState(() {
+                          filterText = text;
+                        });
+                      },
                     ),
 
                   );
@@ -470,7 +487,7 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
                   return PopupMenuItem<CustomPopupMenu>(
                     value: choice,
                     child: Text(choice.title),
-                    enabled: !(choice.pos == 0 && articlesFull.length == 0 || (choice.pos == 2 && _eventFinished) ||
+                    enabled: !((choice.pos == 0 && _hasArticles == false) || (choice.pos == 2 && _eventFinished) ||
                               (choice.pos != 4 && _eventFinished)),
                   );
                 }).toList();
@@ -608,8 +625,20 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
                         )
                       );
 
+                    if(filterText.isNotEmpty) {
+                      for(var article in snapshot.data.documents) {
+                        String name = article["titulo"].toString().toLowerCase();
+                        if(name.contains(filterText.toLowerCase())) {
+                          filterData.add(article);
+                        }
+                      }
+                    }
+
                     return Container(
-                      child: generateListArticlesTest( e: snapshot.data.documents )
+                      child: (filterText.isNotEmpty) ?
+                      generateListArticlesTest( e: filterData)
+                          :
+                      generateListArticlesTest( e: snapshot.data.documents)
                     );
                 }
               }
