@@ -5,6 +5,7 @@ import 'package:ifeventos/views/recover-password/recover-password.dart';
 import 'package:ifeventos/views/singup/sign-up.dart';
 import 'package:ifeventos/views/splash-screen/splash-screen.dart';
 import 'package:ifeventos/widgets/custom-dialog-box.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class SignInScreen extends StatefulWidget {
   @override
@@ -105,97 +106,69 @@ class _SignInScreenState extends State<SignInScreen> {
     return WillPopScope(
         onWillPop: _onBackPressed,
         child: Scaffold(
+          backgroundColor: Color(0xFF313944),
           body: SafeArea(
             child: SingleChildScrollView(
               child: Column(
                 children: <Widget>[
                   Container(
-                      width: double.maxFinite,
-                      height: 200,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: <Widget>[
-                          Image.asset(
-                            'images/if.png',
-                            height: 100,
-                          ),
-                          SizedBox(
-                            width: 20,
-                          ),
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: <Widget>[
-                              Text(
-                                "Eventos",
-                                style: TextStyle(
-                                    fontFamily: 'Nunito',
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.w600
-                                ),
-                              ),
-                              // Text(
-                              //   "2021",
-                              //   style: TextStyle(
-                              //     fontFamily: 'Nunito',
-                              //     fontSize: 20,
-                              //     fontWeight: FontWeight.w600
-                              //   ),
-                              // ),
-                            ],
-                          )
-                        ],
-                      )
-                  ),
-
-                  Container(
-                    height: MediaQuery.of(context).size.height - 200,
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 20),
-                    decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [
-                              Color.fromRGBO(50,60,70,1),
-                              Color.fromRGBO(28,29,42,1),
-                            ]
-                        )
-                    ),
+                    padding: EdgeInsets.fromLTRB(30.0, 66.0, 30.0, 0.0),                  
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            SizedBox(
+                              width: 50,
+                            ),
+                            Center(                          
+                          child: Image.asset(
+                            'images/logo-if-eventos.png',
+                            //height: 100,
+                            fit: BoxFit.cover,
+                            alignment: Alignment.center,
+                          ),
+                        ),
+                          ],
+                        ),
+                        SizedBox(
+                          height: 84.0,
+                        ),
+
                         TextField(
                           controller: _mailController,
                           cursorColor: Colors.greenAccent,
                           style: TextStyle(
-                              color: Colors.white
+                              color: Color(0xFFD3D6DA)
                           ),
                           keyboardType: TextInputType.emailAddress,
                           decoration: InputDecoration(
                               labelText: "Usuário",
                               errorText: _validateMail ? _mailError : null,
                               labelStyle: TextStyle(
-                                  color: Colors.grey
+                                  color: Color(0xFFD3D6DA),
+                                  fontSize: 18,
+                                  fontFamily: 'Nunito'
                               ),
                               enabledBorder: UnderlineInputBorder(
                                   borderSide: BorderSide(
-                                      color: Colors.grey
+                                      color: Color(0xFFD3D6DA)
                                   )
                               ),
                               focusedBorder: UnderlineInputBorder(
                                 borderSide: BorderSide(
-                                    color: Colors.grey,
+                                    color: Color(0xFFD3D6DA),
                                     width: 2
                                 ),
                               ),
                               prefixIcon: Icon(
                                   Icons.person,
-                                  color: Colors.grey
+                                  color: Color(0xFFD3D6DA)
                               ),
                               border: UnderlineInputBorder(
                                   borderSide: BorderSide(
-                                      color: Colors.grey
+                                      color: Color(0xFFD3D6DA)
                                   )
                               )
                           ),
@@ -208,7 +181,7 @@ class _SignInScreenState extends State<SignInScreen> {
                           cursorColor: Colors.greenAccent,
                           obscureText: _hiddenPassword,
                           style: TextStyle(
-                              color: Colors.white
+                              color: Color(0xFFD3D6DA)
                           ),
                           keyboardType: TextInputType.text,
                           decoration: InputDecoration(
@@ -221,26 +194,27 @@ class _SignInScreenState extends State<SignInScreen> {
                                   }
                               ),
                               labelStyle: TextStyle(
-                                  color: Colors.grey
+                                  color: Color(0xFFD3D6DA),
+                                  fontSize: 18
                               ),
                               enabledBorder: UnderlineInputBorder(
                                   borderSide: BorderSide(
-                                      color: Colors.grey
+                                      color: Color(0xFFD3D6DA)
                                   )
                               ),
                               focusedBorder: UnderlineInputBorder(
                                 borderSide: BorderSide(
-                                    color: Colors.grey,
+                                    color: Color(0xFFD3D6DA),
                                     width: 2
                                 ),
                               ),
                               prefixIcon: Icon(
                                   Icons.lock,
-                                  color: Colors.grey
+                                  color: Color(0xFFD3D6DA)
                               ),
                               border: UnderlineInputBorder(
                                   borderSide: BorderSide(
-                                      color: Colors.grey
+                                      color: Color(0xFFD3D6DA)
                                   )
                               )
                           ),
@@ -258,7 +232,7 @@ class _SignInScreenState extends State<SignInScreen> {
                             child: Text(
                               "Esqueceu sua senha?",
                               style: TextStyle(
-                                  color: Colors.greenAccent,
+                                  color: Color(0xFFD3D6DA),
                                   fontFamily: 'Nunito',
                                   fontSize: 18,
                                   fontWeight: FontWeight.normal
@@ -270,13 +244,23 @@ class _SignInScreenState extends State<SignInScreen> {
                         SizedBox(
                           height: 50,
                           width: double.maxFinite,
-                          child: RaisedButton(
+                          child: ElevatedButton(                    
+                            style: ButtonStyle(
+                              backgroundColor: MaterialStateProperty.all(Color(0xFF70C836)),
+                              shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                                RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(61.0),
+                                  
+                                ),
+                              ),
+                            ),
                             onPressed: () {
                               _login();
                             },
                             child: Text(
                               "Entrar",
                               style: TextStyle(
+                                  color: Color(0xFF313944),
                                   fontFamily: 'Nunito',
                                   fontSize: 18,
                                   fontWeight: FontWeight.w600
@@ -285,38 +269,73 @@ class _SignInScreenState extends State<SignInScreen> {
                           ),
                         ),
 
-                        Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 20.0),
-                            child: Row(
-                              children: <Widget>[
-                                Text(
-                                  'Não tem conta?',
-                                  style: TextStyle(
-                                      color: Colors.white,
-                                      fontFamily: 'Nunito',
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.normal
-                                  ),
+                        SizedBox(
+                          height: 20.0,
+                        ),
+
+                        SizedBox(
+                          height: 50,
+                          width: double.maxFinite,
+                          child: ElevatedButton(                    
+                            style: ButtonStyle(
+                              backgroundColor: MaterialStateProperty.all(Color(0xFF5EC095)),
+                              shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                                RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(61.0),
+                                  
                                 ),
-                                GestureDetector(
-                                    onTap: () {
-                                      Navigator.push(
+                              ),
+                            ),
+                            onPressed: () {
+                              Navigator.push(
                                         context,
                                         MaterialPageRoute(builder: (context) => SignUpScreen()),
                                       );
-                                    },
-                                    child: Text(
-                                        ' Cadastre-se',
-                                        style: TextStyle(
-                                            color: Colors.greenAccent,
-                                            fontFamily: 'Nunito',
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.normal
-                                        )
-                                    )
-                                )
-                              ],
-                            )
+                            },
+                            child: Text(
+                              "Cadastre-se",
+                              style: TextStyle(
+                                  color: Color(0xFF313944),
+                                  fontFamily: 'Nunito',
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w600
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        // Padding(
+                        //     padding: const EdgeInsets.symmetric(vertical: 20.0),
+                        //     child: Row(
+                        //       children: <Widget>[
+                        //         Text(
+                        //           'Não tem conta?',
+                        //           style: TextStyle(
+                        //               color: Colors.white,
+                        //               fontFamily: 'Nunito',
+                        //               fontSize: 18,
+                        //               fontWeight: FontWeight.normal
+                        //           ),
+                        //         ),
+                        //         GestureDetector(
+                        //             onTap: () {
+                        //               Navigator.push(
+                        //                 context,
+                        //                 MaterialPageRoute(builder: (context) => SignUpScreen()),
+                        //               );
+                        //             },
+                        //             child: Text(
+                        //                 ' Cadastre-se',
+                        //                 style: TextStyle(
+                        //                     color: Colors.greenAccent,
+                        //                     fontFamily: 'Nunito',
+                        //                     fontSize: 18,
+                        //                     fontWeight: FontWeight.normal
+                        //                 )
+                        //             )
+                        //         )
+                        //       ],
+                        //     )
                           // RichText(
                           //   textAlign: TextAlign.center,
                           //   text: TextSpan(
@@ -340,7 +359,7 @@ class _SignInScreenState extends State<SignInScreen> {
                           //     ],
                           //   ),
                           // ),
-                        ),
+                        //),
                       ],
                     ),
                   ),

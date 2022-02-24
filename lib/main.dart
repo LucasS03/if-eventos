@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:ifeventos/views/signIn/sign-in-teste.dart';
 import 'package:ifeventos/views/splash-screen/splash-screen.dart';
 
 void main() async {

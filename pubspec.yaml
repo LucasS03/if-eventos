@@ -44,6 +44,7 @@ dependencies:
   share: ^0.6.5+4
   excel: ^1.1.5
   expandable: ^4.1.4
+  flutter_svg: ^0.19.1
 
 dev_dependencies:
   flutter_test:
