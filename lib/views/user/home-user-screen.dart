@@ -8,7 +8,6 @@ class HomeUserScreen extends StatefulWidget {
 }
 
 class _HomeUserScreenState extends State<HomeUserScreen> {
-
   final user = GetStorage().read('userData');
 
   _logout() async {
@@ -22,73 +21,57 @@ class _HomeUserScreenState extends State<HomeUserScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xffdddddd),
-
+      backgroundColor: Color(0xFFD3D6DA),
       body: Container(
-        child: SingleChildScrollView(
-          child: Container(
-            width: double.maxFinite,
-            padding: EdgeInsets.only(left: 15, right: 15, top: 40, bottom: 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-
-              children: <Widget>[
-                Container(
-                  width: 150,
-                  height: 150,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(75),
-                    child: this.user["photo"] != null && this.user["photo"] != "" ? 
-                    Image.network(this.user["photo"]) :
-                    Container(
-                      width: 150,
-                      height: 150,
-                      color: Colors.blueGrey,
-                      child: Center(
-                        child: Text(
-                          this.user["name"][0],
-                          style: TextStyle(
-                            fontSize: 60,
-                            color: Colors.white
+          child: SingleChildScrollView(
+              child: Container(
+        width: double.maxFinite,
+        padding: EdgeInsets.only(left: 15, right: 15, top: 40, bottom: 20),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.center, children: <
+            Widget>[
+          Container(
+            width: 150,
+            height: 150,
+            child: ClipRRect(
+                borderRadius: BorderRadius.circular(75),
+                child: this.user["photo"] != null && this.user["photo"] != ""
+                    ? Image.network(this.user["photo"])
+                    : Container(
+                        width: 150,
+                        height: 150,
+                        color: Colors.blueGrey,
+                        child: Center(
+                          child: Text(
+                            this.user["name"][0],
+                            style: TextStyle(fontSize: 60, color: Colors.white),
                           ),
                         ),
-                      ),
-                    )
-                  ),
-                ),
-
-                SizedBox(height: 20),
-                Text(
-                  this.user["name"],
-                  style: TextStyle(
+                      )),
+          ),
+          SizedBox(height: 20),
+          Text(
+            this.user["name"],
+            style: TextStyle(fontSize: 18, color: Colors.grey[800]),
+          ),
+          SizedBox(height: 20),
+          SizedBox(
+            height: 50,
+            width: double.maxFinite,
+            child: RaisedButton(
+              onPressed: () {
+                _logout();
+              },
+              child: Text(
+                "Sair",
+                style: TextStyle(
+                    fontFamily: 'Nunito',
                     fontSize: 18,
-                    color: Colors.grey[800]
-                  ),
-                ),
-
-                SizedBox(height: 20),
-                SizedBox(
-                  height: 50,
-                  width: double.maxFinite,
-                  child: RaisedButton(
-                    onPressed: () {
-                      _logout();
-                    },
-                    child: Text(
-                      "Sair",
-                      style: TextStyle(
-                        fontFamily: 'Nunito',
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600
-                      ),
-                    ),
-                  ),
-                ),
-              ]
+                    fontWeight: FontWeight.w600),
+              ),
             ),
-          )
-        )
-      ),
+          ),
+        ]),
+      ))),
     );
   }
 }
