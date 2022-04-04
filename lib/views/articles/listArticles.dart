@@ -529,19 +529,20 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
                   if (customIcon.icon == Icons.search) {
                     customIcon = Icon(Icons.cancel);
                     customSearchBar = ListTile(
-                      leading: Icon(Icons.search, color: Colors.white, size: 28),
+                      leading:
+                          Icon(Icons.search, color: Colors.white, size: 28),
                       title: TextField(
                         //TODO - implementar busca
                         cursorColor: Colors.white,
                         autofocus: true,
                         decoration: InputDecoration(
-                          hintText: "Buscar artigos",
-                          hintStyle: TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontStyle: FontStyle.italic,
-                          ),
-                          border: InputBorder.none),
+                            hintText: "Buscar artigos",
+                            hintStyle: TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontStyle: FontStyle.italic,
+                            ),
+                            border: InputBorder.none),
                         style: TextStyle(color: Colors.white),
                         onChanged: (text) {
                           setState(() {
@@ -552,11 +553,8 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
                     );
                   } else {
                     customIcon = const Icon(Icons.search);
-                    customSearchBar = const Text(
-                      "Evento",
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis
-                    );
+                    customSearchBar = const Text("Evento",
+                        maxLines: 1, overflow: TextOverflow.ellipsis);
                   }
                 });
               },
@@ -688,58 +686,47 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
                                   case ConnectionState.none:
                                   case ConnectionState.waiting:
                                     return Center(
-                                      child: CircularProgressIndicator()
-                                    );
+                                        child: CircularProgressIndicator());
                                   default:
                                     if (snapshot.data.documents.length == 0) {
                                       return Container(
-                                        width: double.maxFinite,
-                                        padding: EdgeInsets.symmetric(horizontal: 5, vertical: 15),
-                                        margin: EdgeInsets.only(bottom: 10),
-                                        decoration: BoxDecoration(
-                                          color: Colors.white,
-                                          borderRadius: BorderRadius.all(Radius.circular(5)),
-                                        ),
-                                        child: FutureBuilder(
-                                          future: isEvaluatorOfThisEvent(widget.eventId),
-                                          // ignore: missing_return
-                                          builder: (context, snapshot) {
-                                            switch (snapshot.connectionState) {
-                                              default:
-                                                return Text(this.user["type"] == "GESTOR" ?
-                                                  "Você ainda não adicionou nenhum trabalho" :
-                                                  snapshot.data ?
-                                                    "Nenhum trabalho atribuído à você" :
-                                                    "Você não é um avaliador deste evento",
-                                                  style: TextStyle(
-                                                    fontSize: 16,
-                                                    fontWeight: FontWeight.bold
-                                                  ),
-                                                  textAlign: TextAlign.center,
-                                                );
-                                            }
-                                          }
-                                        )
-                                      );
+                                          width: double.maxFinite,
+                                          padding: EdgeInsets.symmetric(
+                                              horizontal: 5, vertical: 15),
+                                          margin: EdgeInsets.only(bottom: 10),
+                                          decoration: BoxDecoration(
+                                            color: Colors.white,
+                                            borderRadius: BorderRadius.all(
+                                                Radius.circular(5)),
+                                          ),
+                                          child: FutureBuilder(
+                                              future: isEvaluatorOfThisEvent(
+                                                  widget.eventId),
+                                              // ignore: missing_return
+                                              builder: (context, snapshot) {
+                                                switch (
+                                                    snapshot.connectionState) {
+                                                  default:
+                                                    return Text(
+                                                      this.user["type"] ==
+                                                              "GESTOR"
+                                                          ? "Você ainda não adicionou nenhum trabalho"
+                                                          : snapshot.data
+                                                              ? "Nenhum trabalho atribuído à você"
+                                                              : "Você não é um avaliador deste evento",
+                                                      style: TextStyle(
+                                                          fontSize: 16,
+                                                          fontWeight:
+                                                              FontWeight.bold),
+                                                      textAlign:
+                                                          TextAlign.center,
+                                                    );
+                                                }
+                                              }));
                                     }
-
-                                    if (filterText.isNotEmpty) {
-                                      filterData.clear();
-                                      for (var article in snapshot.data.documents) {
-                                        String name = article["titulo"]
-                                            .toString()
-                                            .toLowerCase();
-                                        if (name.contains(filterText.toLowerCase())) {
-                                          filterData.add(article);
-                                        }
-                                      }
-                                    }
-
-                                    return Container(
-                                      child: (filterText.isNotEmpty) ?
-                                        generateListArticlesTest(e: filterData) :
-                                        generateListArticlesTest(e: snapshot.data.documents)
-                                    );
+                                    return getFullArticles(
+                                        articles: snapshot.data.documents,
+                                        filter: filterText);
                                 }
                               })
                           : articlesFull.length == 0
@@ -751,7 +738,8 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
                                     textAlign: TextAlign.center,
                                   ),
                                 )
-                              : getFullArticles(articles: articlesFull, filter: filterText),
+                              : getFullArticles(
+                                  articles: articlesFull, filter: filterText),
 
                   // Botão de entregar avaliações
                   this.user["type"] == "AVALIADOR"
@@ -832,15 +820,15 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
               ));
   }
 
-  Widget getFullArticles({ @required articles, @required filter }) {
+  Widget getFullArticles({@required articles, @required filter}) {
     List<DocumentSnapshot> _filterArticleData = [];
 
     if (filter.isNotEmpty) {
       _filterArticleData.clear();
-      
+
       for (var article in articles) {
         String name = article["titulo"].toString().toLowerCase();
-        
+
         if (name.contains(filterText.toLowerCase())) {
           _filterArticleData.add(article);
         }
@@ -848,10 +836,9 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
     }
 
     return Container(
-      child: (filter.isNotEmpty) ?
-        generateListArticlesTest(e: _filterArticleData) : 
-        generateListArticlesTest(e: articles)
-    );
+        child: (filter.isNotEmpty)
+            ? generateListArticlesTest(e: _filterArticleData)
+            : generateListArticlesTest(e: articles));
   }
 
   PopupMenuItem popupMenuItemCustom(
