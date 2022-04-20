@@ -11,7 +11,7 @@ class _NewEventScreenState extends State<NewEventScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xffdddddd),
+      backgroundColor: Color(0xffD3D6DA),
       appBar: AppBar(
         title: Text(
           "Criar Evento",
@@ -21,26 +21,27 @@ class _NewEventScreenState extends State<NewEventScreen> {
       ),
 
       body: Container(
-        padding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+        padding: EdgeInsets.fromLTRB(15, 10, 15, 20),
 
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
             Expanded(
               child: CustomCard(
+                color: Color(0xffD3D6DA),
                 body: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(
                       Icons.event_available_outlined,
                       size: 80,
-                      color: Colors.grey[600],
+                      color: Color(0xff313944),
                     ),
                     SizedBox(height: 20),
                     Text(
                       "Aqui você vai poder criar um novo evento em 5 passos...\n\nVamos lá?",
                       style: Theme.of(context).textTheme.headline5.merge(
-                        TextStyle(color: Colors.grey[600])
+                        TextStyle(color: Color(0xff313944))
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -52,14 +53,21 @@ class _NewEventScreenState extends State<NewEventScreen> {
             SizedBox(
               height: 50,
               width: double.maxFinite,
-              child: RaisedButton(
+              child: ElevatedButton(
                 onPressed: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => NewEventTitleScreen()),
                   );
                 },
-                color: Colors.green,
+                style: ButtonStyle(
+                      backgroundColor: MaterialStateProperty.all(Colors.green),
+                              shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                                RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(61.0),
+                                ),
+                              ),
+                    ),
                 child: Text(
                   "Continuar",
                   style: TextStyle(

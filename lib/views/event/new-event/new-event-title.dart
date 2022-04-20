@@ -25,7 +25,7 @@ class _NewEventTitleScreenState extends State<NewEventTitleScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xffdddddd),
+      backgroundColor: Color(0xffD3D6DA),
       appBar: AppBar(
         title: Text(
           "Criar Evento",
@@ -40,20 +40,21 @@ class _NewEventTitleScreenState extends State<NewEventTitleScreen> {
             height: MediaQuery.of(context).size.height - 80,
           ),
           child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+             padding: EdgeInsets.fromLTRB(15, 10, 15, 20),
             
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
                 Expanded(
                   child: CustomCard(
+                    color: Color(0xffD3D6DA),
                     body: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
                           "Qual vai ser o título do seu evento?",
                           style: Theme.of(context).textTheme.headline5.merge(
-                            TextStyle(color: Colors.grey[600])
+                            TextStyle(color: Color(0xff313944))
                           ),
                           textAlign: TextAlign.center,
                         ),
@@ -62,7 +63,7 @@ class _NewEventTitleScreenState extends State<NewEventTitleScreen> {
                           key: _formKey,
                           child: TextFormField(
                             controller: _titleController,
-                            cursorColor: Colors.green,
+                            cursorColor: Color(0xff313944),
                             validator: (value) {
                               if(_titleController.text.isEmpty)
                                 return 'O título do seu evento não pode ser vazio';
@@ -76,11 +77,11 @@ class _NewEventTitleScreenState extends State<NewEventTitleScreen> {
                             decoration: InputDecoration(
                               labelText: "Exemplo: SEMIC 2021",
                               labelStyle: TextStyle(
-                                color: Colors.grey[600]
+                                color: Color(0xff313944)
                               ),
                               prefixIcon: Icon(
                                 Icons.title, 
-                                color: Colors.grey[600]
+                                color: Color(0xff313944)
                               ),
                             ),
                           )
@@ -93,7 +94,7 @@ class _NewEventTitleScreenState extends State<NewEventTitleScreen> {
                 SizedBox(
                   height: 50,
                   width: double.maxFinite,
-                  child: RaisedButton(
+                  child: ElevatedButton(
                     onPressed: () {
                       if(!_formKey.currentState.validate())
                         return;
@@ -105,7 +106,14 @@ class _NewEventTitleScreenState extends State<NewEventTitleScreen> {
                         MaterialPageRoute(builder: (context) => NewEventSiteScreen(newEvent: newEvent)),
                       );
                     },
-                    color: Colors.green,
+                    style: ButtonStyle(
+                      backgroundColor: MaterialStateProperty.all(Colors.green),
+                              shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                                RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(61.0),
+                                ),
+                              ),
+                    ),
                     child: Text(
                       "Continuar",
                       style: TextStyle(

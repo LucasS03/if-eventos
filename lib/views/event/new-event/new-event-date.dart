@@ -21,7 +21,7 @@ class _NewEventDateScreenState extends State<NewEventDateScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: Color(0xffdddddd),
+        backgroundColor: Color(0xffD3D6DA),
         appBar: AppBar(
           title: Text(
             "Criar Evento",
@@ -35,12 +35,13 @@ class _NewEventDateScreenState extends State<NewEventDateScreen> {
               height: MediaQuery.of(context).size.height - 80,
             ),
             child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+                padding: EdgeInsets.fromLTRB(15, 10, 15, 20),
                 child: Column(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
                       Expanded(
                         child: CustomCard(
+                          color: Color(0xffD3D6DA),
                             body: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -49,7 +50,7 @@ class _NewEventDateScreenState extends State<NewEventDateScreen> {
                               style: Theme.of(context)
                                   .textTheme
                                   .headline5
-                                  .merge(TextStyle(color: Colors.grey[600])),
+                                  .merge(TextStyle(color: Color(0xff313944))),
                               textAlign: TextAlign.center,
                             ),
                             SizedBox(height: 20),
@@ -63,7 +64,7 @@ class _NewEventDateScreenState extends State<NewEventDateScreen> {
                                       decoration: InputDecoration(
                                         labelText: 'Data de início do evento',
                                         prefixIcon: Icon(Icons.date_range,
-                                            color: Colors.grey[600]),
+                                            color: Color(0xff313944)),
                                       ),
                                       onChanged: (dt) =>
                                           setState(() => _dateBegin = dt),
@@ -88,7 +89,7 @@ class _NewEventDateScreenState extends State<NewEventDateScreen> {
                                       decoration: InputDecoration(
                                         labelText: 'Data do fim do evento',
                                         prefixIcon: Icon(Icons.date_range,
-                                            color: Colors.grey[600]),
+                                            color: Color(0xff313944)),
                                       ),
                                       onChanged: (dt) =>
                                           setState(() => _dateEnd = dt),
@@ -120,7 +121,7 @@ class _NewEventDateScreenState extends State<NewEventDateScreen> {
                       SizedBox(
                         height: 50,
                         width: double.maxFinite,
-                        child: RaisedButton(
+                        child: ElevatedButton(
                           onPressed: () {
                             if (!_formKey.currentState.validate()) return;
 
@@ -156,7 +157,14 @@ class _NewEventDateScreenState extends State<NewEventDateScreen> {
                             );
                             // }
                           },
-                          color: Colors.green,
+                          style: ButtonStyle(
+                              backgroundColor: MaterialStateProperty.all(Colors.green),
+                              shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                                RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(61.0),
+                                ),
+                              ),
+                    ),
                           child: Text(
                             "Continuar",
                             style: TextStyle(

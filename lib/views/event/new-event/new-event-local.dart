@@ -21,7 +21,7 @@ class _NewEventLocalScreenState extends State<NewEventLocalScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xffdddddd),
+      backgroundColor: Color(0xffD3D6DA),
       appBar: AppBar(
         title: Text(
           "Criar Evento",
@@ -36,20 +36,21 @@ class _NewEventLocalScreenState extends State<NewEventLocalScreen> {
             height: MediaQuery.of(context).size.height - 80,
           ),
           child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+            padding: EdgeInsets.fromLTRB(15, 10, 15, 20),
 
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
                 Expanded(
                   child: CustomCard(
+                    color: Color(0xffD3D6DA),
                     body: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
                           "Onde irá acontecer seu evento?",
                           style: Theme.of(context).textTheme.headline5.merge(
-                            TextStyle(color: Colors.grey[600])
+                            TextStyle(color: Color(0xff313944))
                           ),
                           textAlign: TextAlign.center,
                         ),
@@ -71,11 +72,11 @@ class _NewEventLocalScreenState extends State<NewEventLocalScreen> {
                                 decoration: InputDecoration(
                                   labelText: "Exemplo: IFCE Aracati - Campus Centro",
                                   labelStyle: TextStyle(
-                                    color: Colors.grey[600]
+                                    color: Color(0xff313944)
                                   ),
                                   prefixIcon: Icon(
                                     Icons.location_on_outlined, 
-                                    color: Colors.grey[600]
+                                    color: Color(0xff313944)
                                   ),
                                 ),
                               ),
@@ -85,7 +86,7 @@ class _NewEventLocalScreenState extends State<NewEventLocalScreen> {
                                 children: <Widget>[
                                   Text(
                                     "Campus do evento",
-                                    style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+                                    style: TextStyle(fontSize: 18, color: Color(0xff313944)),
                                   ),
                                   SizedBox(width: 10,),
                                   Expanded(
@@ -101,7 +102,7 @@ class _NewEventLocalScreenState extends State<NewEventLocalScreen> {
                                       items: [
                                         DropdownMenuItem<dynamic>(
                                           value: "ARACATI",
-                                          child: Text("Aracati", style: TextStyle(fontSize: 18, color: Colors.grey[600]),)
+                                          child: Text("Aracati", style: TextStyle(fontSize: 18, color: Color(0xff313944)),)
                                         )
                                       ]
                                     ),
@@ -119,7 +120,7 @@ class _NewEventLocalScreenState extends State<NewEventLocalScreen> {
                 SizedBox(
                   height: 50,
                   width: double.maxFinite,
-                  child: RaisedButton(
+                  child: ElevatedButton(
                     onPressed: () {
                       widget.newEvent["local"] = _localController.text;
                       widget.newEvent["campus"] = _campusEvent;
@@ -136,7 +137,14 @@ class _NewEventLocalScreenState extends State<NewEventLocalScreen> {
                         });
 
                     },
-                    color: Colors.green,
+                    style: ButtonStyle(
+                              backgroundColor: MaterialStateProperty.all(Colors.green),
+                              shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                                RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(61.0),
+                                ),
+                              ),
+                    ),
                     child: Text(
                       "Continuar",
                       style: TextStyle(
