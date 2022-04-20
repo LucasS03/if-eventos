@@ -23,28 +23,35 @@ class _RecoverPasswordScreenState extends State<RecoverPasswordScreen> {
     FirebaseAuth auth = FirebaseAuth.instance;
 
     return Scaffold(
-      backgroundColor: Color(0xffdddddd),
-      appBar: AppBar(
-        title: Text("Recuperar Senha"),
-      ),
+      backgroundColor: Color(0xffD3D6DA),
+      // appBar: AppBar(
+      //   title: Text("Recuperar Senha"),
+      // ),
 
       body: SingleChildScrollView(
         child: Container(
           width: double.maxFinite,
-          padding: EdgeInsets.symmetric(
-            horizontal: 15,
-            vertical: 15
-          ),
+          padding: EdgeInsets.fromLTRB(30.0, 66.0, 30.0, 0.0),
           child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
+                SizedBox(
+                  height: 80.0,
+                ),
+                Center(
+                  child: Image.asset('images/person-recovery-password.png'),
+                ),
+                SizedBox(
+                  height: 40.0,
+                ),
                 Text(
-                  "Olá, nós iremos te ajudar a recuperar seu perfil! Para isso, basta inserir abaixo o seu e-mail de cadastro.",
-                  textAlign: TextAlign.justify,
+                  "Para recuperação de senha, insira abaixo o seu email de cadastro.",
+                  textAlign: TextAlign.center,
                   style: TextStyle(
-                    fontSize: 16
+                    fontSize: 18,
+                    color: Color(0xff313944)
                   )
                 ),
 
@@ -74,7 +81,7 @@ class _RecoverPasswordScreenState extends State<RecoverPasswordScreen> {
                       ),
                     ),
                     prefixIcon: Icon(
-                      Icons.mail, 
+                      Icons.alternate_email, 
                       color: Colors.grey[800]
                     ),
                     border: UnderlineInputBorder(
@@ -109,7 +116,15 @@ class _RecoverPasswordScreenState extends State<RecoverPasswordScreen> {
                 SizedBox(
                   height: 50,
                   width: double.maxFinite,
-                  child: RaisedButton(
+                  child: ElevatedButton(
+                    style: ButtonStyle(
+                      backgroundColor: MaterialStateProperty.all(Color(0xFF70C836)),
+                              shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                                RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(61.0),
+                                ),
+                              ),
+                    ),
                     onPressed: () {
                       if(_formKey.currentState.validate()) {
                         _recoverPassword();
@@ -118,14 +133,13 @@ class _RecoverPasswordScreenState extends State<RecoverPasswordScreen> {
                         }).catchError((e) => print(e.toString()));
                       }
                     },
-                    color: Colors.green,
                     child: Text(
                       "Recuperar Senha",
                       style: TextStyle(
                         fontFamily: 'Nunito',
                         fontSize: 18,
                         fontWeight: FontWeight.w600,
-                        color: Colors.white
+                        color: Color(0xff313944)
                       ),
                     ),
                   ),

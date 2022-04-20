@@ -9,7 +9,6 @@ class SignUpScreen extends StatefulWidget {
 }
 
 class _SignUpScreenState extends State<SignUpScreen> {
-
   final _formKey = GlobalKey<FormState>();
   TextEditingController _nameController = new TextEditingController();
   TextEditingController _registrationController = new TextEditingController();
@@ -18,17 +17,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
   TextEditingController _cnfPwdController = new TextEditingController();
   bool _created = false;
   String _typeUser = "AVALIADOR";
+  var _typesUsers = ["AVALIADOR", "GESTOR"];
   String _campusUser = "ARACATI";
 
   _register() async {
     try {
-      AuthResult auth = await FirebaseAuth.instance.createUserWithEmailAndPassword(
-        email: _mailController.text, 
-        password: _pwdController.text
-      );
+      AuthResult auth = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(
+              email: _mailController.text, password: _pwdController.text);
 
-      if(auth.user.uid != null && auth.user.uid.length > 0) {
-
+      if (auth.user.uid != null && auth.user.uid.length > 0) {
         Map<String, dynamic> user = {
           "name": _nameController.text,
           "registration": _registrationController.text,
@@ -38,103 +36,127 @@ class _SignUpScreenState extends State<SignUpScreen> {
           "photo": ""
         };
 
-        Firestore.instance.collection("users").document(auth.user.uid)
-          .setData(user).then((value) => {
-            showDialog(context: context,
-              builder: (BuildContext context){
-                return CustomDialogBox(
-                  title: "Tudo Certo!",
-                  descriptions: "Sua conta foi criada. Agora você pode fazer login com seu e-mail e senha!",
-                  text: "Ir para o Login",
-                  icon: Icons.check,
-                  iconColor: Colors.white,
-                  color: Colors.greenAccent,
-                  skipScreen: true,
-                );
-              }
-            )
-          }).catchError((err) => {
-            print(err)
-          });
+        Firestore.instance
+            .collection("users")
+            .document(auth.user.uid)
+            .setData(user)
+            .then((value) => {
+                  showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return CustomDialogBox(
+                          title: "Tudo Certo!",
+                          descriptions:
+                              "Sua conta foi criada. Agora você pode fazer login com seu e-mail e senha!",
+                          text: "Ir para o Login",
+                          icon: Icons.check,
+                          iconColor: Colors.white,
+                          color: Colors.greenAccent,
+                          skipScreen: true,
+                        );
+                      })
+                })
+            .catchError((err) => {print(err)});
       }
     } catch (e) {
       print(e);
-      showDialog(context: context,
-        builder: (BuildContext context){
-          return CustomDialogBox(
-            title: "Ops... :(",
-            descriptions: "Houve algum erro ao criar sua conta... Que tal tentar mais tarde?",
-            text: "Voltar",
-            icon: Icons.close,
-            iconColor: Colors.white,
-            color: Colors.redAccent
-          );
-        }
-      );
+      showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return CustomDialogBox(
+                title: "Ops... :(",
+                descriptions:
+                    "Houve algum erro ao criar sua conta... Que tal tentar mais tarde?",
+                text: "Voltar",
+                icon: Icons.close,
+                iconColor: Colors.white,
+                color: Colors.redAccent);
+          });
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xffdddddd),
-      appBar: AppBar(
-        title: Text("Cadastre-se"),
-      ),
-
+      backgroundColor: Color(0xffD3D6DA),
+      // appBar: AppBar(
+      //   title: Text("Cadastre-se"),
+      // ),
       body: SingleChildScrollView(
         child: Container(
           width: double.maxFinite,
-          padding: EdgeInsets.symmetric(
-            horizontal: 15,
-            vertical: 15
-          ),
+          padding: EdgeInsets.fromLTRB(30.0, 66.0, 30.0, 0.0),
           child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                Text(
-                  "Seja bem-vindo! Nós iremos te ajudar a criar seu perfil! Para isso, basta inserir abaixo suas informações pessoais, ok?",
-                  textAlign: TextAlign.justify,
-                  style: TextStyle(
-                    fontSize: 16
-                  )
-                ),
+                Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            SizedBox(
+                              width: 50,
+                            ),
+                            Center(                          
+                          child: Image.asset(
+                            'images/logo-if-eventos-azul.png',
+                            //height: 100,
+                            fit: BoxFit.cover,
+                            alignment: Alignment.center,
+                          ),
+                        ),
+                          ],
+                        ),
 
+                        SizedBox(
+                          height: 60.0,
+                        ),
+                // Text(
+                //     "Seja bem-vindo! Nós iremos te ajudar a criar seu perfil! Para isso, basta inserir abaixo suas informações pessoais, ok?",
+                //     textAlign: TextAlign.justify,
+                //     style: TextStyle(fontSize: 16)),
                 SizedBox(height: 10),
                 Row(
                   children: <Widget>[
                     Text(
                       "Você é um ",
-                      style: TextStyle(fontSize: 18),
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontFamily: 'Nunito',
+                        ),
                     ),
-                    SizedBox(width: 10,),
+                    SizedBox(
+                      width: 10,
+                    ),
                     Expanded(
                       child: DropdownButton<dynamic>(
-                        icon: Icon(Icons.keyboard_arrow_down),
-                        isExpanded: true,
-                        value: _typeUser,
-                        onChanged: (newValue) {
-                          setState(() {
-                            _typeUser = newValue;
-                          });
-                        },
-                        items: [
-                          DropdownMenuItem<dynamic>(
-                            value: "AVALIADOR",
-                            child: Text("Avaliador")
+                          icon: Icon(Icons.keyboard_arrow_down),
+                          isExpanded: true,
+                          value: _typeUser,
+                          onChanged: (newValue) {
+                            setState(() {
+                              _typeUser = newValue;
+                            });
+                          },
+                          items: _typesUsers.map((e) {
+                            return DropdownMenuItem<dynamic>(
+                                value: e, child: Text(e));
+                          }).toList(),
+                          // [
+                          //   DropdownMenuItem<dynamic>(
+                          //     value: "AVALIADOR",
+                          //     child: Text("Avaliador")
+                          //   ),
+                          //   // DropdownMenuItem<dynamic>(
+                          //   //   value: "ALUNO",
+                          //   //   child: Text("Aluno")
+                          //   // ),
+                          //   DropdownMenuItem<dynamic>(
+                          //     value: "GESTOR",
+                          //     child: Text("Coordenador")
+                          //   ),
+                          // ]
                           ),
-                          // DropdownMenuItem<dynamic>(
-                          //   value: "ALUNO",
-                          //   child: Text("Aluno")
-                          // ),
-                          // DropdownMenuItem<dynamic>(
-                          //   value: "GESTOR",
-                          //   child: Text("Coordenador")
-                          // ),
-                        ]
-                      ),
                     )
                   ],
                 ),
@@ -145,106 +167,109 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       "Seu campus é ",
                       style: TextStyle(fontSize: 18),
                     ),
-                    SizedBox(width: 10,),
+                    SizedBox(
+                      width: 10,
+                    ),
                     Expanded(
                       child: DropdownButton<dynamic>(
-                        icon: Icon(Icons.keyboard_arrow_down),
-                        isExpanded: true,
-                        value: _campusUser,
-                        onChanged: (newValue) {
-                          setState(() {
-                            _campusUser = newValue;
-                          });
-                        },
-                        items: [
-                          DropdownMenuItem<dynamic>(
-                            value: "ARACATI",
-                            child: Text("Aracati")
-                          )
-                        ]
-                      ),
+                          icon: Icon(Icons.keyboard_arrow_down),
+                          isExpanded: true,
+                          value: _campusUser,
+                          onChanged: (newValue) {
+                            setState(() {
+                              _campusUser = newValue;
+                            });
+                          },
+                          items: [
+                            DropdownMenuItem<dynamic>(
+                                value: "ARACATI", child: Text("Aracati"))
+                          ]),
                     )
                   ],
                 ),
-                
                 fieldForm(
-                  icon: Icons.person, 
-                  label: "Nome", 
-                  controller: _nameController,
-                  validator: (value) {
-                    if(_nameController.text.isEmpty)
-                      return 'Não pode ser vazio';
-                    return null;
-                  }
-                ),
+                    icon: Icons.edit,
+                    label: "Nome",
+                    controller: _nameController,
+                    validator: (value) {
+                      if (_nameController.text.isEmpty)
+                        return 'Não pode ser vazio';
+                      return null;
+                    }),
                 SizedBox(height: 10),
                 fieldForm(
-                  icon: Icons.branding_watermark, 
-                  label: "Matrícula", 
-                  controller: _registrationController,
-                  mail: true,
-                  validator: (value) {
-                    return null;
-                  }
-                ),
+                    icon: Icons.branding_watermark,
+                    label: "Matrícula",
+                    controller: _registrationController,
+                    mail: true,
+                    validator: (value) {
+                      return null;
+                    }),
                 fieldForm(
-                  icon: Icons.mail, 
-                  label: "E-mail", 
-                  controller: _mailController,
-                  mail: true,
-                  validator: (value) {
-                    if(!_mailController.text.contains('@') || !_mailController.text.contains('.'))
-                      return 'E-mail inválido';
-                    return null;
-                  }
-                ),
+                    icon: Icons.alternate_email,
+                    label: "E-mail",
+                    controller: _mailController,
+                    mail: true,
+                    validator: (value) {
+                      if (!_mailController.text.contains('@') ||
+                          !_mailController.text.contains('.'))
+                        return 'E-mail inválido';
+                      return null;
+                    }),
                 SizedBox(height: 10),
                 fieldForm(
-                  icon: Icons.lock, 
-                  label: "Senha", 
-                  controller: _pwdController,
-                  pwd: true,
-                  validator: (value) {
-                    if(_pwdController.text.length < 6)
-                      return 'Mínimo de 6 caracteres';
-                    return null;
-                  }
-                ),
+                    icon: Icons.lock,
+                    label: "Senha",
+                    controller: _pwdController,
+                    pwd: true,
+                    validator: (value) {
+                      if (_pwdController.text.length < 6)
+                        return 'Mínimo de 6 caracteres';
+                      return null;
+                    }),
                 SizedBox(height: 10),
                 fieldForm(
-                  icon: Icons.lock, 
-                  label: "Confirmar Senha", 
-                  controller: _cnfPwdController,
-                  pwd: true,
-                  validator: (value) {
-                    if(_cnfPwdController.text != _pwdController.text) 
-                      return 'As senhas não coincidem';
-                    return null;
-                  }
+                    icon: Icons.lock,
+                    label: "Confirmar Senha",
+                    controller: _cnfPwdController,
+                    pwd: true,
+                    validator: (value) {
+                      if (_cnfPwdController.text != _pwdController.text)
+                        return 'As senhas não coincidem';
+                      return null;
+                    }),
+                SizedBox(
+                  height: 30,
                 ),
-
-                SizedBox(height: 30,),
                 SizedBox(
                   height: 50,
                   width: double.maxFinite,
-                  child: RaisedButton(
-                    color: Colors.green,
-                    onPressed: _created ? null : () {
-                      if(_formKey.currentState.validate())
-                        _register();
-                    },
+                  child: ElevatedButton(
+                    style: ButtonStyle(
+                      backgroundColor: MaterialStateProperty.all(Color(0xFF70C836)),
+                              shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                                RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(61.0),
+                                  
+                                ),
+                              ),
+                    ),
+                    onPressed: _created
+                        ? null
+                        : () {
+                            if (_formKey.currentState.validate()) _register();
+                          },
                     child: Text(
                       "Cadastrar",
                       style: TextStyle(
-                        fontFamily: 'Nunito',
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white
-                      ),
+                          fontFamily: 'Nunito',
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xff313944)
+                          ),
                     ),
                   ),
                 ),
-
               ],
             ),
           ),
@@ -254,14 +279,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 }
 
-Widget fieldForm({
-    bool mail = true,
+Widget fieldForm(
+    {bool mail = true,
     bool pwd = false,
-    @required IconData icon, 
-    @required String label, 
+    @required IconData icon,
+    @required String label,
     @required var controller,
-    @required FormFieldValidator validator
-  }) {
+    @required FormFieldValidator validator}) {
   return TextFormField(
     controller: controller,
     cursorColor: Colors.greenAccent,
@@ -269,30 +293,15 @@ Widget fieldForm({
     validator: validator,
     keyboardType: mail ? TextInputType.emailAddress : TextInputType.text,
     decoration: InputDecoration(
-      labelText: label,
-      labelStyle: TextStyle(
-        color: Colors.grey[800]
-      ),
-      enabledBorder: UnderlineInputBorder(
-        borderSide: BorderSide(
-          color: Colors.grey
-        )
-      ),
-      focusedBorder: UnderlineInputBorder(
-        borderSide: BorderSide(
-          color: Colors.grey,
-          width: 2
+        labelText: label,
+        labelStyle: TextStyle(color: Colors.grey[800]),
+        enabledBorder:
+            UnderlineInputBorder(borderSide: BorderSide(color: Colors.grey)),
+        focusedBorder: UnderlineInputBorder(
+          borderSide: BorderSide(color: Colors.grey, width: 2),
         ),
-      ),
-      prefixIcon: Icon(
-        icon, 
-        color: Colors.grey[800]
-      ),
-      border: UnderlineInputBorder(
-        borderSide: BorderSide(
-          color: Colors.grey[800]
-        )
-      )
-    ),
+        prefixIcon: Icon(icon, color: Colors.grey[800]),
+        border: UnderlineInputBorder(
+            borderSide: BorderSide(color: Colors.grey[800]))),
   );
 }
