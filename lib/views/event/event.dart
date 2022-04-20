@@ -21,9 +21,9 @@ class _EventScreenState extends State<EventScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xffdddddd),
+      backgroundColor: Color(0xffD3D6DA),
       appBar: AppBar(
-        title: Text("Eventos",
+        title: Text(" Eventos",
                 style: Theme.of(context).textTheme.headline5.merge(
                 TextStyle(color: Colors.white))
         ),
@@ -60,17 +60,19 @@ class _EventScreenState extends State<EventScreen> {
                       return 
                       SingleChildScrollView(
                         child: Container(
-                          padding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+                          padding: EdgeInsets.symmetric(horizontal: 15, vertical: 20),
                           child: Column(
                             children: [
                               ExpandablePanel(
-                                header: session(title: 'Próximos eventos', color: Colors.grey, textColor: Colors.white),
+                                header: session(title: ' Próximos eventos', color: Color(0xff313944), textColor: Colors.white),
                                 collapsed: null,
                                 expanded: generateListEventsTest(e: snapshot.data.documents, isAfter: true)
                               ),
 
+                          
+
                               ExpandablePanel(
-                                  header: session(title: 'Eventos finalizados', color: Colors.redAccent, textColor: Colors.white),
+                                  header: session(title: ' Eventos finalizados', color: Color(0xffD40000), textColor: Colors.white),
                                   collapsed: null,
                                   expanded: generateListEventsTest(e: snapshot.data.documents, isAfter: false)
                               )
@@ -359,7 +361,7 @@ class _EventScreenState extends State<EventScreen> {
       width: double.maxFinite,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.all(
-          Radius.circular(3)
+          Radius.circular(6)
         ),
         color: color
       ),

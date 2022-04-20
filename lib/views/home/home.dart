@@ -30,6 +30,7 @@ class _HomeAppState extends State<HomeApp> {
             body: _screens[_currentIndex],
 
             bottomNavigationBar: TitledBottomNavigationBar(
+                activeColor: Color(0xff313944),
                 currentIndex: _currentIndex,
                 reverse: true,
                 curve: Curves.elasticIn,
