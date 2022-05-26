@@ -130,22 +130,49 @@ class _SendArticlesScreenState extends State<SendArticlesScreen> {
             margin: EdgeInsets.fromLTRB(8.0, 7.0, 8.0, 0.0),
             decoration: BoxDecoration(
                 borderRadius: BorderRadius.all(Radius.circular(5)),
-                color: Colors.yellow[100]),
+                color: Colors.yellow[100],
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.5),
+                    spreadRadius: 5,
+                    blurRadius: 7,
+                    offset: Offset(0, 3), // changes position of shadow
+                ),
+              ]
+            ),
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 5),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
-                  Text(
-                    "Caro, organizador!\nO arquivo para submissão deve ser baixado na plataforma NL "
-                    "com as seguintes configurações:\n"
-                    "• Tipo de arquivo: .csv\n"
-                    "• Separador de linha: CLRF\n"
-                    "• Separador de colunas: ; (ponto e vírgula)\n"
-                    "• Delimitador de texto: \" (aspas duplas)\n",
-                    style: Theme.of(context).textTheme.headline6.merge(
-                        TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                    textAlign: TextAlign.center,
+                  GestureDetector(
+                    onTap: () {
+                      showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: Text("Importar trabalhos"),
+                              content: Container(
+                                child: Text("1) O arquivo csv com as informações dos trabalhos a serem apresentados no evento "
+                                    "deve ser baixado diretamente da Plataforma NL, no menu Gestor -> Projetos -> Lista de Projetos."
+                                    "\n2) Em seguida, aplique os filtros necessários para geração da lista de trabalhos (ex: ano)."
+                                    "\n3) Por fim, clique em Exportação -> CSV e configure o arquivo da seguinte maneira:"
+                                    "\n   • Tipo de arquivo: .csv\n"
+                            "   • Separador de linha: CLRF\n"
+                            "   • Separador de colunas: ; (ponto e vírgula)\n"
+                            "   • Delimitador de texto: \" (aspas duplas)\n"
+                                    "4) Agora é só baixar o arquivo e fazer o upload pelo botão abaixo."),
+                              ),
+                            );
+                          }
+                      );
+                    },
+                    child: Text(
+                      "Caro, organizador!\nClique aqui e veja as informações e instruções para geração do arquivo csv.",
+                      style: Theme.of(context).textTheme.headline6.merge(
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      textAlign: TextAlign.center,
+                    ),
                   ),
                 ],
               ),

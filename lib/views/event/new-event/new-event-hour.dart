@@ -51,7 +51,7 @@ class _NewEventHourScreenState extends State<NewEventHourScreen> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text(
-                              "Quando irá acontecer seu evento?",
+                              "Qual o horário do evento?",
                               style: Theme.of(context)
                                   .textTheme
                                   .headline5

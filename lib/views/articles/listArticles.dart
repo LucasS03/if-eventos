@@ -207,6 +207,95 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
     });
   }
 
+  getSchedule() async {
+    var excel = Excel.createExcel();
+    excel.appendRow('Sheet1', [
+      "Trabalho",
+      "Avaliador",
+      "Local",
+      "Horário",
+    ]);
+
+    CellStyle cellStyle = CellStyle(
+        backgroundColorHex: "#CDCDCD",
+        bold: true,
+        fontSize: 12,
+        textWrapping: TextWrapping.WrapText,
+        verticalAlign: VerticalAlign.Top);
+
+    excel.updateCell('Sheet1', CellIndex.indexByString("A1"), "Trabalho",
+        cellStyle: cellStyle);
+    excel.updateCell('Sheet1', CellIndex.indexByString("B1"), "Avaliador",
+        cellStyle: cellStyle);
+    excel.updateCell('Sheet1', CellIndex.indexByString("C1"), "Local",
+        cellStyle: cellStyle);
+    excel.updateCell('Sheet1', CellIndex.indexByString("D1"), "Horário",
+        cellStyle: cellStyle);
+
+    await Firestore.instance
+        .collection("events")
+        .document(widget.eventId)
+        .collection("articles")
+        .getDocuments()
+        .then((value) async {
+      for (int i = 0; i < value.documents.length; i++) {
+        QuerySnapshot evaluations = await Firestore.instance
+            .collection("events")
+            .document(widget.eventId)
+            .collection("articles")
+            .document(value.documents[i].documentID)
+            .collection("evaluations")
+            .getDocuments();
+
+        for (int j = 0; j < evaluations.documents.length; j++) {
+          DocumentSnapshot evaluator = await Firestore.instance
+              .collection("users")
+              .document(evaluations.documents[j].data["idEvaluator"])
+              .get();
+
+          excel.appendRow("Sheet1", [
+            value.documents[i].data["titulo"],
+            evaluator.data["name"],
+            value.documents[i].data["local"],
+            value.documents[i].data["horaInicio"],
+          ]);
+        }
+
+        // Pular linha
+        excel.appendRow('Sheet1', ["", "", "", ""]);
+      }
+
+      String dir = (await getExternalStorageDirectory()).absolute.path;
+      DateTime now = new DateTime.now();
+      String file =
+          "$dir" + "/horarios_avaliadores_${now.microsecondsSinceEpoch}.xlsx";
+
+      excel.encode().then((onValue) {
+        File(file)
+          ..createSync(recursive: true)
+          ..writeAsBytesSync(onValue);
+
+        Navigator.pop(context);
+        Share.shareFiles([file],
+            text: "Horários de apresentações \"${eventFull.data["title"]}\"");
+      });
+    }).catchError((onError) {
+      Navigator.pop(context);
+      showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return CustomDialogBox(
+                title: "Ops...",
+                descriptions:
+                    "Desculpe! Tivemos um erro ao gerar o seu arquivo de horários. Caso o erro persista, contate o mantenedor do sistema.",
+                text: "Ok",
+                icon: Icons.pan_tool,
+                iconColor: Colors.white,
+                color: Colors.redAccent);
+          });
+    });
+  }
+
   @override
   void initState() {
     getEvent();
@@ -571,9 +660,10 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
                       return PopupMenuItem<CustomPopupMenu>(
                         value: choice,
                         child: Text(choice.title),
-                        enabled: !((choice.pos == 0 && _hasArticles == false) ||
-                            (choice.pos == 2 && _eventFinished) ||
-                            (choice.pos != 4 && _eventFinished)),
+                        enabled: !((choice.pos == 2 && _eventFinished) ||
+                            (choice.pos != 4 &&
+                                choice.pos != 0 &&
+                                _eventFinished)),
                       );
                     }).toList();
                   }),
@@ -645,7 +735,10 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
                                 "${eventFull.data["hourBegin"]} às ${eventFull.data["hourEnd"]}"),
                         addInfo(
                             first: "Local: ",
-                            last: "${eventFull.data["local"]}")
+                            last: "${eventFull.data["local"]}"),
+                        addInfo(
+                            first: "Campus: ",
+                            last: "${eventFull.data["campus"]}")
                       ],
                     ),
                   ),
@@ -671,6 +764,41 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
 
                   Divider(),
 
+                  Visibility(
+                    visible: this.user["type"] == "GESTOR" && _hasArticles,
+                    child: Container(
+                      width: double.maxFinite,
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 5, vertical: 15),
+                      margin: EdgeInsets.only(bottom: 10),
+                      decoration: BoxDecoration(
+                          color: Colors.green,
+                          borderRadius: BorderRadius.all(Radius.circular(10)),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.5),
+                              spreadRadius: 5,
+                              blurRadius: 7,
+                              offset:
+                                  Offset(0, 3), // changes position of shadow
+                            ),
+                          ]),
+                      child: GestureDetector(
+                        onTap: () {
+                          getSchedule();
+                        },
+                        child: Text(
+                          "Compartilhar horários",
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold),
+                          textAlign: TextAlign.center,
+                        ),
+                      )
+                      )
+                      ),
+
                   // Lista artigos
                   _loadArticles
                       ? Center(child: CircularProgressIndicator())
@@ -695,9 +823,27 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
                                               horizontal: 5, vertical: 15),
                                           margin: EdgeInsets.only(bottom: 10),
                                           decoration: BoxDecoration(
-                                            color: Colors.white,
+                                            color:
+                                                this.user["type"] == "GESTOR" &&
+                                                        !_eventFinished
+                                                    ? Colors.green
+                                                    : Colors.white,
                                             borderRadius: BorderRadius.all(
-                                                Radius.circular(5)),
+                                                Radius.circular(10)),
+                                            boxShadow:
+                                                this.user["type"] == "GESTOR" &&
+                                                        !_eventFinished
+                                                    ? [
+                                                        BoxShadow(
+                                                          color: Colors.grey
+                                                              .withOpacity(0.5),
+                                                          spreadRadius: 5,
+                                                          blurRadius: 7,
+                                                          offset: Offset(0,
+                                                              3), // changes position of shadow
+                                                        ),
+                                                      ]
+                                                    : null,
                                           ),
                                           child: FutureBuilder(
                                               future: isEvaluatorOfThisEvent(
@@ -707,19 +853,45 @@ class _ListArticlesScreenState extends State<ListArticlesScreen> {
                                                 switch (
                                                     snapshot.connectionState) {
                                                   default:
-                                                    return Text(
-                                                      this.user["type"] ==
-                                                              "GESTOR"
-                                                          ? "Você ainda não adicionou nenhum trabalho"
-                                                          : snapshot.data
-                                                              ? "Nenhum trabalho atribuído à você"
-                                                              : "Você não é um avaliador deste evento",
-                                                      style: TextStyle(
-                                                          fontSize: 16,
-                                                          fontWeight:
-                                                              FontWeight.bold),
-                                                      textAlign:
-                                                          TextAlign.center,
+                                                    return GestureDetector(
+                                                      onTap: () {
+                                                        if (this.user["type"] ==
+                                                                "GESTOR" &&
+                                                            !_eventFinished)
+                                                          Navigator.push(
+                                                            context,
+                                                            MaterialPageRoute(
+                                                                builder: (context) =>
+                                                                    SendArticlesScreen(
+                                                                        eventId:
+                                                                            widget.eventId)),
+                                                          );
+                                                      },
+                                                      child: Text(
+                                                        this.user["type"] ==
+                                                                    "GESTOR" &&
+                                                                !_eventFinished
+                                                            ? "Você ainda não adicionou nenhum trabalho.\nClique aqui e adicione."
+                                                            : this.user["type"] ==
+                                                                    "GESTOR"
+                                                                ? "Nenhum trabalho adicionado."
+                                                                : snapshot.data
+                                                                    ? "Nenhum trabalho atribuído à você."
+                                                                    : "Você não é um avaliador deste evento.",
+                                                        style: TextStyle(
+                                                            color: this.user[
+                                                                            "type"] ==
+                                                                        "GESTOR" &&
+                                                                    !_eventFinished
+                                                                ? Colors.white
+                                                                : Colors.black,
+                                                            fontSize: 16,
+                                                            fontWeight:
+                                                                FontWeight
+                                                                    .bold),
+                                                        textAlign:
+                                                            TextAlign.center,
+                                                      ),
                                                     );
                                                 }
                                               }));

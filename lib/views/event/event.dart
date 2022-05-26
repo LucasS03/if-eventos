@@ -163,6 +163,14 @@ class _EventScreenState extends State<EventScreen> {
                     maxLines: 3,
                     overflow: TextOverflow.ellipsis,
                   ),
+                  Text(
+                    "Campus: ${el.data["campus"]}",
+                    style: Theme.of(context).textTheme.headline6.merge(
+                      TextStyle(fontSize: 15)
+                    ),
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                  ),
 
                   FutureBuilder(
                     future: isEvaluatorOfThisEvent(el.documentID),

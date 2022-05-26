@@ -144,7 +144,7 @@ class _SignInScreenState extends State<SignInScreen> {
                           ),
                           keyboardType: TextInputType.emailAddress,
                           decoration: InputDecoration(
-                              labelText: "Usuário",
+                              labelText: "Email",
                               errorText: _validateMail ? _mailError : null,
                               labelStyle: TextStyle(
                                   color: Color(0xFFD3D6DA),
